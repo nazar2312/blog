@@ -35,6 +35,9 @@ public class UserEntity {
     @Column(name = "created", nullable = false, updatable = false)
     private LocalDateTime created;
 
+    @Column(name = "updated", nullable = false)
+    private LocalDateTime updated;
+
     /*
         ONE user can have MANY posts
      */

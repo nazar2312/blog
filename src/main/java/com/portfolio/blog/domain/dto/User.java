@@ -8,6 +8,7 @@ public record User(
         UUID id,
         String username,
         String email,
+        String password,
         LocalDateTime created,
         LocalDateTime updated,
         List<Post> posts
