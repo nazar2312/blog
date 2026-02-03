@@ -1,14 +1,16 @@
 package com.portfolio.blog.mappers.impl;
 
 import com.portfolio.blog.domain.dto.Post;
+import com.portfolio.blog.domain.dto.User;
 import com.portfolio.blog.domain.entities.PostEntity;
+import com.portfolio.blog.domain.entities.UserEntity;
 import com.portfolio.blog.mappers.PostMapperInterface;
+import org.springframework.stereotype.Component;
+
+@Component
 
 public class PostMapper implements PostMapperInterface {
     
-    private final UserMapper userMapper;
-    
-    public PostMapper(UserMapper userMapper) { this.userMapper = userMapper; }
 
     @Override
     public Post toDto(PostEntity postEntity) {
@@ -19,11 +21,18 @@ public class PostMapper implements PostMapperInterface {
                 postEntity.getContent(),
                 postEntity.getCreated(),
                 postEntity.getUpdated(),
-                userMapper.toDto(
-                        postEntity.getUserEntity()
+                new User(
+                        postEntity.getAuthor().getId(),
+                        postEntity.getAuthor().getUsername(),
+                        postEntity.getAuthor().getEmail(),
+                        postEntity.getAuthor().getPassword(),
+                        postEntity.getAuthor().getCreated(),
+                        postEntity.getAuthor().getUpdated(),
+                        null
                 ),
                 postEntity.getStatus(),
-                postEntity.getCategories(),
+                postEntity.getReadingTime(),
+                postEntity.getCategory(),
                 postEntity.getTags()
         );
     }
@@ -37,10 +46,17 @@ public class PostMapper implements PostMapperInterface {
                 postDto.content(),
                 postDto.created(),
                 postDto.updated(),
-                userMapper.toEntity(
-                        postDto.user()
+                new UserEntity(
+                        postDto.user().id(),
+                        postDto.user().username(),
+                        postDto.user().email(),
+                        postDto.user().password(),
+                        postDto.user().created(),
+                        postDto.user().updated(),
+                        null
                 ),
                 postDto.status(),
+                postDto.readingTime(),
                 postDto.categories(),
                 postDto.tags()
         );

@@ -5,7 +5,7 @@ import com.portfolio.blog.domain.entities.StatusEntity;
 import com.portfolio.blog.domain.entities.TagEntity;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public record Post(
@@ -16,8 +16,9 @@ public record Post(
         LocalDateTime updated,
         User user,
         StatusEntity status,
-        List<CategoryEntity> categories,
-        List<TagEntity> tags
+        Integer readingTime,
+        CategoryEntity categories,
+        Set<TagEntity> tags
 
 ) {
 }

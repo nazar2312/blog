@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -17,14 +17,13 @@ public class TagEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", nullable = false, updatable = false)
+    @Column( nullable = false, updatable = false, unique = true)
     private UUID id;
 
-    @Column(name = "name", nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false)
     private String name;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
-    private List<PostEntity> posts;
+    @ManyToMany(mappedBy = "tags")
+    private Set<PostEntity> posts;
 
 }

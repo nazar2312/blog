@@ -3,9 +3,11 @@ package com.portfolio.blog.mappers.impl;
 import com.portfolio.blog.domain.dto.User;
 import com.portfolio.blog.domain.entities.UserEntity;
 import com.portfolio.blog.mappers.UserMapperInterface;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+@Component
 public class UserMapper implements UserMapperInterface {
     
     private final PostMapper postMapper;

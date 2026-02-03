@@ -17,13 +17,12 @@ public class CategoryEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @Column(name = "name", nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false, unique = true)
     private String name;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
+    @OneToMany(mappedBy = "category")
     private List<PostEntity> posts;
 }

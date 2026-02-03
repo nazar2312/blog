@@ -19,29 +19,40 @@ public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", updatable = false, nullable = false)
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "username", nullable = false)
+    @Column(nullable = false)
     private String username;
 
     @Email
-    @Column(name = "email", nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password", nullable = false)
+    @Column(nullable = false)
     private String password;
 
-    @Column(name = "created", nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime created;
 
-    @Column(name = "updated", nullable = false)
+    @PrePersist
+    protected void onCreate() {
+        this.created = LocalDateTime.now();
+        this.updated = LocalDateTime.now();
+    }
+
+    @Column(nullable = false)
     private LocalDateTime updated;
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updated = LocalDateTime.now();
+    }
 
     /*
         ONE user can have MANY posts
      */
-    @OneToMany(mappedBy = "user", cascade = {
+    @OneToMany(mappedBy = "author", cascade = {
             CascadeType.REMOVE, CascadeType.PERSIST
     })
     private List<PostEntity> posts;
