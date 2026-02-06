@@ -6,9 +6,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
 
+/*
+    Service that converts user entity into userDetails, if it's persisting in the database;
+ */
+@Service
 @RequiredArgsConstructor
-public class UserDetailService implements UserDetailsService {
+public class BlogUserDetailsService implements UserDetailsService {
 
     private final UserRepository repository;
 
