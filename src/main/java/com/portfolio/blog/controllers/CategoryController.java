@@ -27,7 +27,7 @@ public class CategoryController {
 
     }
 
-    @GetMapping(path = "/api/{category_id}")
+    @GetMapping(path = "/{category_id}")
     public ResponseEntity<Category> getCategory(@PathVariable UUID category_id) {
 
         return ResponseEntity.status(HttpStatus.OK)
@@ -42,7 +42,7 @@ public class CategoryController {
                 .body(service.createCategory(category));
     }
 
-    @DeleteMapping(path = "/api/{category_id}/")
+    @DeleteMapping(path = "/{category_id}")
     public ResponseEntity<Void> deleteCategory( @PathVariable UUID category_id) {
 
         service.deleteCategory(category_id);

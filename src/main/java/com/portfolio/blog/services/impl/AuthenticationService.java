@@ -26,13 +26,15 @@ public class AuthenticationService implements AuthenticationServiceInterface {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    private final Long jwtExpiry = 36000L;
+    private final Long jwtExpiry = 3600000L;
 
     @Override
     public UserDetails authenticate(String email, String password) {
 
+        //  Verifying user email and password, exception is thrown if data is invalid;
         authManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
 
+        //  Returning User Details if username and password is valid (exception is not thrown)
         return userDetailsService.loadUserByUsername(email);
     }
 
@@ -45,7 +47,23 @@ public class AuthenticationService implements AuthenticationServiceInterface {
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiry))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
 
+    @Override
+    public UserDetails validateToken(String token) {
+        String username = extractUsername(token);
+        return userDetailsService.loadUserByUsername(username);
+    }
+
+    public String extractUsername (String token) {
+
+        //  Throws exception in case if token isn't valid;
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token) //Validates signature
+                .getBody() //Return claims if token is valid
+                .getSubject(); //Returns username
     }
 
     private Key getSigningKey() {

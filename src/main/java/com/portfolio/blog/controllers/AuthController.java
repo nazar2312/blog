@@ -19,7 +19,7 @@ public class AuthController {
     private final AuthenticationServiceInterface authService;
 
     @PostMapping
-    public ResponseEntity<LoginResponse> loginResponseResponseEntity(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> loginResponseEntity(@RequestBody LoginRequest request) {
 
         //Authenticate user;
         UserDetails details = authService.authenticate(
@@ -33,7 +33,7 @@ public class AuthController {
         //generate response and return;
         LoginResponse response = LoginResponse.builder()
                 .token(token)
-                .expiresIn(3600)
+                .expiresIn(36000)
                 .build();
         return ResponseEntity.ok(response);
     }
