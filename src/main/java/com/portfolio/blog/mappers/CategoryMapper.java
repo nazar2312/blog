@@ -1,7 +1,7 @@
 package com.portfolio.blog.mappers;
 
-import com.portfolio.blog.domain.dto.Category;
-import com.portfolio.blog.domain.dto.CreateCategoryRequest;
+import com.portfolio.blog.domain.dto.category.CategoryRequest;
+import com.portfolio.blog.domain.dto.category.CategoryResponse;
 import com.portfolio.blog.domain.entities.CategoryEntity;
 import com.portfolio.blog.domain.entities.PostEntity;
 import com.portfolio.blog.domain.entities.StatusEntity;
@@ -16,11 +16,10 @@ import java.util.List;
 public interface CategoryMapper {
 
     @Mapping(target = "postCount", source = "posts", qualifiedByName = "calculatePostCount")
-    Category toDto(CategoryEntity entity);
 
-    CategoryEntity toEntity(Category category);
+    CategoryResponse entityToResponse(CategoryEntity entity);
 
-    Category fromRequestToDto(CreateCategoryRequest request);
+    CategoryEntity requestToEntity(CategoryRequest category);
 
     @Named("calculatePostCount")
     default long calculatePostCount(List<PostEntity> posts) {

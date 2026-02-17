@@ -17,7 +17,7 @@ public class TagEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column( nullable = false, updatable = false, unique = true)
+    @Column(nullable = false, updatable = false, unique = true)
     private UUID id;
 
     @Column(nullable = false, updatable = false)

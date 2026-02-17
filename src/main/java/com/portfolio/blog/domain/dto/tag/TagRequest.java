@@ -1,4 +1,5 @@
-package com.portfolio.blog.domain.dto;
+package com.portfolio.blog.domain.dto.tag;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +10,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegistrationResponse {
-    String message;
+public class TagRequest {
+    String name;
 }

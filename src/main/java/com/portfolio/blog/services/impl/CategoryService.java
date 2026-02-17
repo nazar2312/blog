@@ -1,7 +1,7 @@
 package com.portfolio.blog.services.impl;
 
-import com.portfolio.blog.domain.dto.Category;
-import com.portfolio.blog.domain.dto.CreateCategoryRequest;
+import com.portfolio.blog.domain.dto.category.CategoryResponse;
+import com.portfolio.blog.domain.dto.category.CategoryRequest;
 import com.portfolio.blog.domain.entities.CategoryEntity;
 import com.portfolio.blog.mappers.CategoryMapper;
 import com.portfolio.blog.repositories.CategoryRepository;
@@ -25,34 +25,33 @@ public class CategoryService implements CategoryServiceInterface {
     }
 
     @Override
-    public List<Category> findAllCategories() {
+    public List<CategoryResponse> findAllCategories() {
 
         List<CategoryEntity> categories = repository.findAll();
 
         if(categories.isEmpty()) throw new EntityNotFoundException();
 
         return categories.stream()
-                .map(mapper::toDto)
+                .map(mapper::entityToResponse)
                 .toList();
     }
 
     @Override
-    public Category findCategoryById(UUID id) {
+    public CategoryResponse findCategoryById(UUID id) {
 
         Optional<CategoryEntity> category = repository.findById(id);
         
         if(category.isEmpty()) throw new EntityNotFoundException();
         
-        return mapper.toDto(category.get());
+        return mapper.entityToResponse(category.get());
     }
 
     @Override
-    public Category createCategory(CreateCategoryRequest category) {
+    public CategoryResponse createCategory(CategoryRequest request) {
 
-        Category categoryDto = mapper.fromRequestToDto(category);
-        CategoryEntity categoryEntity = repository.save(mapper.toEntity(categoryDto));
+        CategoryEntity entity = mapper.requestToEntity(request);
 
-        return mapper.toDto(categoryEntity);
+        return mapper.entityToResponse(repository.save(entity));
 
     }
 

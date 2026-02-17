@@ -1,6 +1,6 @@
 package com.portfolio.blog.services.impl;
 
-import com.portfolio.blog.domain.dto.RegistrationRequest;
+import com.portfolio.blog.domain.dto.registration.RegistrationRequest;
 import com.portfolio.blog.domain.entities.UserEntity;
 import com.portfolio.blog.repositories.UserRepository;
 import com.portfolio.blog.services.RegistrationServiceInterface;

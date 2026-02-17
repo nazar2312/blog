@@ -1,7 +1,7 @@
 package com.portfolio.blog.controllers;
 
-import com.portfolio.blog.domain.dto.LoginRequest;
-import com.portfolio.blog.domain.dto.LoginResponse;
+import com.portfolio.blog.domain.dto.login.LoginRequest;
+import com.portfolio.blog.domain.dto.login.LoginResponse;
 import com.portfolio.blog.services.AuthenticationServiceInterface;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

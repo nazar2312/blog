@@ -1,7 +1,7 @@
 package com.portfolio.blog.controllers;
 
-import com.portfolio.blog.domain.dto.Category;
-import com.portfolio.blog.domain.dto.CreateCategoryRequest;
+import com.portfolio.blog.domain.dto.category.CategoryRequest;
+import com.portfolio.blog.domain.dto.category.CategoryResponse;
 import com.portfolio.blog.services.impl.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -20,7 +20,7 @@ public class CategoryController {
     public CategoryController(CategoryService service) { this.service = service; }
 
     @GetMapping
-    public ResponseEntity<List<Category>> listCategories() {
+    public ResponseEntity<List<CategoryResponse>> listCategories() {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(service.findAllCategories());
@@ -28,15 +28,15 @@ public class CategoryController {
     }
 
     @GetMapping(path = "/{category_id}")
-    public ResponseEntity<Category> getCategory(@PathVariable UUID category_id) {
+    public ResponseEntity<CategoryResponse> getCategory(@PathVariable UUID category_id) {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(service.findCategoryById(category_id));
     }
 
     @PostMapping
-    public ResponseEntity<Category> createCategory(
-            @Valid @RequestBody CreateCategoryRequest category) {
+    public ResponseEntity<CategoryResponse> createCategory(
+            @Valid @RequestBody CategoryRequest category) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(service.createCategory(category));

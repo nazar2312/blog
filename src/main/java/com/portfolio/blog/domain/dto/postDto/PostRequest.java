@@ -1,8 +1,7 @@
 package com.portfolio.blog.domain.dto.postDto;
 
-import com.portfolio.blog.domain.dto.Category;
-import com.portfolio.blog.domain.dto.Tag;
-import com.portfolio.blog.domain.dto.User;
+import com.portfolio.blog.domain.dto.category.CategoryRequest;
+import com.portfolio.blog.domain.dto.tag.TagRequest;
 import com.portfolio.blog.domain.entities.StatusEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,8 +17,7 @@ import java.util.Set;
 public class PostRequest {
     String title;
     String content;
-    User user;
     StatusEntity status;
-    Category categories;
-    Set<Tag> tags;
+    CategoryRequest categories;
+    Set<TagRequest> tags;
 }

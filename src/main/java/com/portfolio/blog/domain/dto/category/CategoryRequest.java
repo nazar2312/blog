@@ -1,4 +1,4 @@
-package com.portfolio.blog.domain.dto;
+package com.portfolio.blog.domain.dto.category;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateCategoryRequest {
+public class CategoryRequest {
 
     @NotBlank(message = "Category name is required")
     @Size(min = 2, max = 20, message = "Category name size must be between 2 and 20 characters")

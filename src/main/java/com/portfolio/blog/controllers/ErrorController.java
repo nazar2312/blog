@@ -1,6 +1,6 @@
 package com.portfolio.blog.controllers;
 
-import com.portfolio.blog.domain.dto.ApiErrorResponse;
+import com.portfolio.blog.domain.dto.error.ApiErrorResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

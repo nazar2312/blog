@@ -1,4 +1,4 @@
-package com.portfolio.blog.domain.dto;
+package com.portfolio.blog.domain.dto.registration;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegistrationRequest {
-    String username;
-    String email;
-    String password;
+public class RegistrationResponse {
+    String message;
 }

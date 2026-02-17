@@ -47,9 +47,7 @@ public class PostService implements PostServiceInterface {
     @Override
     public PostResponse create(PostRequest request) {
 
-        PostEntity post = mapper.requestToEntity(request);
-
-        return mapper.entityToResponse(repository.save(post));
+        return null;
     }
 
     @Override
