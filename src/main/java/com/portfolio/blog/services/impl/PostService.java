@@ -93,6 +93,17 @@ public class PostService implements PostServiceInterface {
     public void delete(UUID uuid) {
         repository.deleteById(uuid);
     }
+
+    private int calculateReadingTime(String content) {
+
+        int wordsInTheContent = content.trim().split("\\s+").length;
+        int averagePerSecond = 3;
+
+        // return 60 seconds if less than 200 words;
+        if(wordsInTheContent < 200) return 60;
+
+        return wordsInTheContent / averagePerSecond;
+    }
 }
 
 

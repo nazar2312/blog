@@ -36,6 +36,7 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/tags/**").permitAll()
+                            .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                             .anyRequest().authenticated()
                     )
                     .csrf(csrf -> csrf.disable())

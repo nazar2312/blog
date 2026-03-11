@@ -32,6 +32,13 @@ public class UserEntity {
     private String email;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @Column(nullable = false)
+    private boolean nonLocked;
+
+    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false, updatable = false)
