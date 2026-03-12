@@ -1,4 +1,4 @@
-package com.portfolio.blog.domain.dto.login;
+package com.portfolio.blog.domain.dto.authentication;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

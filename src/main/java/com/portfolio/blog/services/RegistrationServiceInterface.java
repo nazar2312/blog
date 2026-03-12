@@ -1,6 +1,6 @@
 package com.portfolio.blog.services;
 
-import com.portfolio.blog.domain.dto.registration.RegistrationRequest;
+import com.portfolio.blog.domain.dto.authentication.RegistrationRequest;
 
 public interface RegistrationServiceInterface {
 

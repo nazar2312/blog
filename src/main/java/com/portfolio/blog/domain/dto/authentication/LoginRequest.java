@@ -1,4 +1,4 @@
-package com.portfolio.blog.domain.dto.login;
+package com.portfolio.blog.domain.dto.authentication;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

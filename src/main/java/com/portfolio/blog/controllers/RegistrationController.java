@@ -1,7 +1,7 @@
 package com.portfolio.blog.controllers;
 
-import com.portfolio.blog.domain.dto.registration.RegistrationRequest;
-import com.portfolio.blog.domain.dto.registration.RegistrationResponse;
+import com.portfolio.blog.domain.dto.authentication.RegistrationRequest;
+import com.portfolio.blog.domain.dto.authentication.RegistrationResponse;
 import com.portfolio.blog.services.RegistrationServiceInterface;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

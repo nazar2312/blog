@@ -21,9 +21,9 @@ public class AdminControllers {
     @PostMapping(path = "/delete_post/{id}")
     public ResponseEntity<PostResponse> deletePost(@PathVariable UUID id) {
 
-        postService.delete(id);
+    postService.delete(id);
 
-        return ResponseEntity.noContent().build();
-    }
+    return ResponseEntity.noContent().build();
+}
 
 }

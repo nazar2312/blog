@@ -1,4 +1,4 @@
-package com.portfolio.blog.domain.dto.registration;
+package com.portfolio.blog.domain.dto.authentication;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;

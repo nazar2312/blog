@@ -1,5 +1,8 @@
 package com.portfolio.blog.services.impl;
 
+import com.portfolio.blog.domain.entities.RefreshToken;
+import com.portfolio.blog.repositories.RefreshTokenRepository;
+import com.portfolio.blog.repositories.UserRepository;
 import com.portfolio.blog.services.AuthenticationServiceInterface;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -24,6 +27,8 @@ public class AuthenticationService implements AuthenticationServiceInterface {
     //Authentication manager is used for password validation;
     private final AuthenticationManager authManager;
     private final UserDetailsService userDetailsService;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final UserRepository userRepository;
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -49,6 +54,24 @@ public class AuthenticationService implements AuthenticationServiceInterface {
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiry))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    @Override
+    public String generateRefreshToken(UserDetails details) {
+
+        String token = Jwts.builder()
+                .setSubject(details.getUsername())
+                .setExpiration(new Date(System.currentTimeMillis() + 1712592000))
+                .compact();
+
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(token)
+                .user(userRepository.findByEmail(details.getUsername()).get())
+                .build();
+
+        refreshTokenRepository.save(refreshToken);
+
+        return token;
     }
 
     @Override
