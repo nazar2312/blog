@@ -1,7 +1,7 @@
 package com.portfolio.blog.config;
 
 import com.portfolio.blog.security.JwtAuthenticationFilter;
-import com.portfolio.blog.services.AuthenticationServiceInterface;
+import com.portfolio.blog.services.JwtServiceInterface;
 import io.jsonwebtoken.JwtException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,8 +31,9 @@ public class SecurityConfig {
         try {
             http
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers(HttpMethod.POST, "/api/registration").permitAll()
-                            .requestMatchers(HttpMethod.POST, "/api/auth").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/api/registration**").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/api/auth/login**").permitAll()
+                            .requestMatchers(HttpMethod.POST,"/api/auth/refresh**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/tags/**").permitAll()
@@ -50,8 +51,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtAuthenticationFilter authenticationFilter(AuthenticationServiceInterface authenticationService){
-        return new JwtAuthenticationFilter(authenticationService);
+    public JwtAuthenticationFilter authenticationFilter(JwtServiceInterface jwtService){
+        return new JwtAuthenticationFilter(jwtService);
     }
 
     @Bean

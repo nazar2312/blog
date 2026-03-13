@@ -24,11 +24,11 @@ public class ErrorController {
         log.error(ex.getMessage());
 
         ApiErrorResponse response = ApiErrorResponse.builder()
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .status(HttpStatus.UNAUTHORIZED.value())
                 .message(ex.getMessage())
                 .build();
 
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

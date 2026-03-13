@@ -1,25 +1,23 @@
 package com.portfolio.blog.services.impl;
 
-import com.portfolio.blog.domain.entities.RefreshToken;
-import com.portfolio.blog.repositories.RefreshTokenRepository;
-import com.portfolio.blog.repositories.UserRepository;
+import com.portfolio.blog.domain.dto.authentication.LoginRequest;
 import com.portfolio.blog.services.AuthenticationServiceInterface;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
+import com.portfolio.blog.services.CookieServiceInterface;
+import com.portfolio.blog.services.JwtServiceInterface;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
-import java.util.Date;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService implements AuthenticationServiceInterface {
@@ -27,13 +25,10 @@ public class AuthenticationService implements AuthenticationServiceInterface {
     //Authentication manager is used for password validation;
     private final AuthenticationManager authManager;
     private final UserDetailsService userDetailsService;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final UserRepository userRepository;
+    private final JwtServiceInterface jwtService;
+    private final CookieServiceInterface cookieService;
 
-    @Value("${jwt.secret}")
-    private String secretKey;
 
-    private final Long jwtExpiry = 360000000L;
 
     @Override
     public UserDetails authenticate(String email, String password) {
@@ -46,63 +41,63 @@ public class AuthenticationService implements AuthenticationServiceInterface {
     }
 
     @Override
-    public String generateToken(UserDetails details) {
-        return Jwts.builder()
-                .setClaims(null)
-                .setSubject(details.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiry))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
+    @Transactional
+    public String login(LoginRequest request, HttpServletResponse servletResponse) {
+
+        //Authenticate user;
+        UserDetails userDetails = authenticate(
+                request.getEmail(),
+                request.getPassword()
+        );
+
+        //Generate token;
+        String accessToken = jwtService.generateToken(userDetails);
+        String refreshToken = jwtService.generateRefreshToken(userDetails);
+
+        cookieService.addTokenToCookie(refreshToken, servletResponse);
+
+        log.info("User [ {} ] is successfully logged in.", userDetails.getUsername());
+        return accessToken;
+    }
+
+    @Transactional
+    @Override
+    public String refresh(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            String refreshToken
+    ) {
+
+        if (jwtService.validateRefreshToken(refreshToken) ) {
+
+            UserDetails userDetails = userDetailsService.loadUserByUsername(
+                    jwtService.extractUsername(refreshToken)
+            );
+
+            cookieService.removeTokenFromCookie(response);
+            jwtService.deleteRefreshToken(refreshToken);
+
+            var newRefreshToken = jwtService.generateRefreshToken(userDetails);
+            var newAccessToken = jwtService.generateToken(userDetails);
+
+            cookieService.addTokenToCookie(newRefreshToken, response);
+
+            log.info("User [ {} ] has received new access token ] ", userDetails.getUsername());
+
+            return newAccessToken;
+
+        } else throw new JwtException("Refresh token is expired/invalid");
     }
 
     @Override
-    public String generateRefreshToken(UserDetails details) {
+    public void logout(String refreshToken, HttpServletRequest request, HttpServletResponse response) {
 
-        String token = Jwts.builder()
-                .setSubject(details.getUsername())
-                .setExpiration(new Date(System.currentTimeMillis() + 1712592000))
-                .compact();
+        jwtService.deleteRefreshToken(refreshToken);
+        cookieService.removeTokenFromCookie(response);
 
-        RefreshToken refreshToken = RefreshToken.builder()
-                .token(token)
-                .user(userRepository.findByEmail(details.getUsername()).get())
-                .build();
 
-        refreshTokenRepository.save(refreshToken);
+        //I need to make access token invalid using redis for quick access to blacklist of tokens;
 
-        return token;
-    }
-
-    @Override
-    public UserDetails validateToken(String token) {
-        String username = extractUsername(token);
-        return userDetailsService.loadUserByUsername(username);
-    }
-
-    public String extractUsername (String token) {
-
-        //  Throws exception in case if token isn't valid;
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token) //Validates signature
-                .getBody() //Return claims if token is valid
-                .getSubject(); //Returns username
-    }
-
-    private Key getSigningKey() {
-        byte[] keyBytes = secretKey.getBytes();
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    public String extractToken(HttpServletRequest request) {
-
-        String bearerToken = request.getHeader("Authorization");
-
-        if(bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        } else throw new BadCredentialsException("Jwt token wasn't provided");
     }
 
 

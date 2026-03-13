@@ -1,6 +1,7 @@
 package com.portfolio.blog.security;
 
-import com.portfolio.blog.services.AuthenticationServiceInterface;
+import com.portfolio.blog.services.JwtServiceInterface;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,7 +19,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final AuthenticationServiceInterface authenticationService;
+    private final JwtServiceInterface jwtService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -26,8 +27,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         try {
-            String token = authenticationService.extractToken(request);
-            UserDetails userDetails = authenticationService.validateToken(token);
+            String token = jwtService.extractToken(request);
+            UserDetails userDetails = jwtService.validateToken(token);
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                     userDetails,
                     null,
@@ -35,21 +36,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             );
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
-        } catch (RuntimeException ex) {
+        } catch (JwtException ex) {
             //unauthorized
-            log.warn(ex.getMessage());
+            log.warn("JWT authentication filter failed | Error message - {}", ex.getMessage());
         }
         filterChain.doFilter(request, response);
 
     }
 
+    // Specifying endpoints that should not be filtered;
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
 
         String path = request.getServletPath();
 
-        return path.equals("/api/registration") ||
-                path.equals("/api/auth") ||
+        return
+                path.startsWith("/api/registration") ||
+                path.startsWith("/api/auth") ||
                 request.getMethod().equals("GET") && path.startsWith("/api/posts") ||
                 request.getMethod().equals("GET") && path.startsWith("/api/categories") ||
                 request.getMethod().equals("GET") && path.startsWith("/api/tags");

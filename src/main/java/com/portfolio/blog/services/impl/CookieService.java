@@ -15,7 +15,7 @@ public class CookieService implements CookieServiceInterface {
 
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
-        cookie.setPath("/auth");
+        cookie.setPath("/api/auth");
         cookie.setMaxAge(30 * 24 * 60 * 60);
 
         response.addCookie(cookie);
@@ -28,7 +28,7 @@ public class CookieService implements CookieServiceInterface {
 
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
-        cookie.setPath("/auth");
+        cookie.setPath("/api/auth");
         cookie.setMaxAge(0);
 
         response.addCookie(cookie);
