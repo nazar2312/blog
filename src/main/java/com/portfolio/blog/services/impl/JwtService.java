@@ -4,6 +4,7 @@ import com.portfolio.blog.domain.entities.RefreshToken;
 import com.portfolio.blog.repositories.RefreshTokenRepository;
 import com.portfolio.blog.repositories.UserRepository;
 import com.portfolio.blog.services.JwtServiceInterface;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -12,7 +13,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -51,12 +51,12 @@ public class JwtService implements JwtServiceInterface {
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
 
-        RefreshToken refreshToken = RefreshToken.builder()
+        RefreshToken refreshTokenEntity = RefreshToken.builder()
                 .token(token)
                 .user(userRepository.findByEmail(details.getUsername()).get())
                 .build();
 
-        refreshTokenRepository.save(refreshToken);
+        refreshTokenRepository.save(refreshTokenEntity);
 
         return token;
     }
@@ -80,8 +80,10 @@ public class JwtService implements JwtServiceInterface {
     }
 
     @Override
+    @Transactional
     public void deleteRefreshToken(String refreshToken) {
-        refreshTokenRepository.deleteByToken(refreshToken);
+        RefreshToken tokenToDelete =  refreshTokenRepository.findByToken(refreshToken).get();
+        refreshTokenRepository.delete(tokenToDelete);
     }
 
     @Override
@@ -98,7 +100,7 @@ public class JwtService implements JwtServiceInterface {
 
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
-        } else throw new BadCredentialsException("Jwt token wasn't provided");
+        } else throw new JwtException("Jwt token wasn't provided");
     }
 
     @Override

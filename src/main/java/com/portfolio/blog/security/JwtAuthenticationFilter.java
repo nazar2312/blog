@@ -1,5 +1,6 @@
 package com.portfolio.blog.security;
 
+import com.portfolio.blog.services.JwtBlacklistServiceInterface;
 import com.portfolio.blog.services.JwtServiceInterface;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -20,6 +21,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtServiceInterface jwtService;
+    private final JwtBlacklistServiceInterface jwtBlacklistService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -27,8 +29,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         try {
+
             String token = jwtService.extractToken(request);
+            jwtBlacklistService.isBlacklisted(token);
             UserDetails userDetails = jwtService.validateToken(token);
+
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                     userDetails,
                     null,
@@ -40,8 +45,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             //unauthorized
             log.warn("JWT authentication filter failed | Error message - {}", ex.getMessage());
         }
-        filterChain.doFilter(request, response);
 
+        filterChain.doFilter(request, response);
     }
 
     // Specifying endpoints that should not be filtered;
@@ -52,12 +57,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         return
                 path.startsWith("/api/registration") ||
-                path.startsWith("/api/auth") ||
-                request.getMethod().equals("GET") && path.startsWith("/api/posts") ||
-                request.getMethod().equals("GET") && path.startsWith("/api/categories") ||
-                request.getMethod().equals("GET") && path.startsWith("/api/tags");
+                        path.startsWith("/api/auth") ||
+                        request.getMethod().equals("GET") && path.startsWith("/api/posts") ||
+                        request.getMethod().equals("GET") && path.startsWith("/api/categories") ||
+                        request.getMethod().equals("GET") && path.startsWith("/api/tags");
     }
-
 
 
 }

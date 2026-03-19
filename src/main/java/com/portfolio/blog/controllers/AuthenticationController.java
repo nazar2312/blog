@@ -45,7 +45,7 @@ public class AuthenticationController {
     }
 
     @PostMapping(path = "/logout")
-    public void logout(
+    public ResponseEntity<String> logout(
             @CookieValue(name = "refreshToken")
             String refreshToken,
             HttpServletRequest request,
@@ -54,6 +54,6 @@ public class AuthenticationController {
 
         authenticationService.logout(refreshToken, request, response);
 
-
+        return ResponseEntity.ok("Successfully logged out");
     }
 }

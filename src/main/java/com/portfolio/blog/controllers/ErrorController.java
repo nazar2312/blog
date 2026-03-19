@@ -24,11 +24,11 @@ public class ErrorController {
         log.error(ex.getMessage());
 
         ApiErrorResponse response = ApiErrorResponse.builder()
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .message(ex.getMessage())
+                .status(HttpStatus.FORBIDDEN.value())
+                .message("Access forbidden, try again later")
                 .build();
 
-        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -55,11 +55,11 @@ public class ErrorController {
         );
 
         ApiErrorResponse response = ApiErrorResponse.builder()
-                .status(HttpStatus.UNAUTHORIZED.value())
+                .status(HttpStatus.FORBIDDEN.value())
                 .message("Incorrect password or username")
                 .build();
 
-        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleEntityNotFound(EntityNotFoundException ex) {
