@@ -21,7 +21,7 @@ public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
+    @Column(updatable = false, nullable = false, unique = true)
     private UUID id;
 
     @Column(nullable = false)

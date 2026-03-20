@@ -1,6 +1,5 @@
 package com.portfolio.blog.security;
 
-import com.portfolio.blog.services.JwtBlacklistServiceInterface;
 import com.portfolio.blog.services.JwtServiceInterface;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -21,7 +20,6 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtServiceInterface jwtService;
-    private final JwtBlacklistServiceInterface jwtBlacklistService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -31,7 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
 
             String token = jwtService.extractToken(request);
-            jwtBlacklistService.isBlacklisted(token);
+            jwtService.isBlacklisted(token);
             UserDetails userDetails = jwtService.validateToken(token);
 
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(

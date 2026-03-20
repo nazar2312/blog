@@ -11,12 +11,14 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostResponse {
+    UUID id;
     String title;
     String content;
     LocalDateTime created;

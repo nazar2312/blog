@@ -27,7 +27,6 @@ public class AuthenticationService implements AuthenticationServiceInterface {
     private final UserDetailsService userDetailsService;
     private final JwtServiceInterface jwtService;
     private final CookieServiceInterface cookieService;
-    private final JwtBlacklistService jwtBlacklistService;
 
 
     @Override
@@ -95,11 +94,16 @@ public class AuthenticationService implements AuthenticationServiceInterface {
         jwtService.deleteRefreshToken(refreshToken);
         cookieService.removeTokenFromCookie(response);
 
-
         //I need to make access token invalid using redis for quick access to blacklist of tokens;
 
         String accessToken = jwtService.extractToken(request);
-        jwtBlacklistService.addToBlacklist(accessToken, 84000);
+        jwtService.addToBlacklist(accessToken, 84000);
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(
+                jwtService.extractUsername(refreshToken)
+        );
+
+        log.info("User [ {} ] successfully logged out ] ", userDetails.getUsername());
 
     }
 

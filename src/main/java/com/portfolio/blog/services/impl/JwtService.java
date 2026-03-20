@@ -13,6 +13,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -20,12 +21,14 @@ import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class JwtService implements JwtServiceInterface {
 
+    private final StringRedisTemplate redisTemplate;
     private final UserDetailsService userDetailsService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
@@ -111,12 +114,31 @@ public class JwtService implements JwtServiceInterface {
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token) //Validates signature
-                .getBody() //Return claims if token is valid
+                .getBody()//Return claims if token is valid
                 .getSubject(); //Returns username
     }
 
     private Key getSigningKey() {
         byte[] keyBytes = secretKey.getBytes();
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    @Override
+    public boolean isBlacklisted(String jti) {
+
+        if(redisTemplate.hasKey("blacklist: " + jti)) throw new JwtException("Received token is in the blacklist");
+
+        return false;
+    }
+
+    @Override
+    public void addToBlacklist(String jti, long ttl) {
+
+        redisTemplate.opsForValue().set(
+                "blacklist: " + jti,
+                "true",
+                ttl,
+                TimeUnit.MILLISECONDS
+        );
     }
 }

@@ -15,4 +15,8 @@ public interface JwtServiceInterface {
     UserDetails validateToken(String token);
     String extractToken(HttpServletRequest request);
     String extractUsername(String token);
+
+    boolean isBlacklisted(String jti);
+
+    void addToBlacklist(String jti, long ttl);
 }

@@ -1,7 +1,6 @@
 package com.portfolio.blog.config;
 
 import com.portfolio.blog.security.JwtAuthenticationFilter;
-import com.portfolio.blog.services.JwtBlacklistServiceInterface;
 import com.portfolio.blog.services.JwtServiceInterface;
 import io.jsonwebtoken.JwtException;
 import org.springframework.context.annotation.Bean;
@@ -51,8 +50,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtAuthenticationFilter authenticationFilter(JwtServiceInterface jwtService, JwtBlacklistServiceInterface jwtBlacklistService){
-        return new JwtAuthenticationFilter(jwtService, jwtBlacklistService);
+    public JwtAuthenticationFilter authenticationFilter(JwtServiceInterface jwtService){
+        return new JwtAuthenticationFilter(jwtService);
     }
 
     @Bean
