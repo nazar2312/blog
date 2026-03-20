@@ -12,9 +12,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+
+import java.sql.Time;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 
 @Slf4j
@@ -56,6 +62,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
         cookieService.addTokenToCookie(refreshToken, servletResponse);
 
         log.info("User [ {} ] is successfully logged in.", userDetails.getUsername());
+
         return accessToken;
     }
 
@@ -70,7 +77,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
         if (jwtService.validateRefreshToken(refreshToken) ) {
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(
-                    jwtService.extractUsername(refreshToken)
+                    jwtService.getClaims(refreshToken).getSubject()
             );
 
             cookieService.removeTokenFromCookie(response);
@@ -91,20 +98,16 @@ public class AuthenticationService implements AuthenticationServiceInterface {
     @Override
     public void logout(String refreshToken, HttpServletRequest request, HttpServletResponse response) {
 
-        jwtService.deleteRefreshToken(refreshToken);
-        cookieService.removeTokenFromCookie(response);
-
-        //I need to make access token invalid using redis for quick access to blacklist of tokens;
+        jwtService.deleteRefreshToken(refreshToken); // Removing refresh token from the database
+        cookieService.removeTokenFromCookie(response);  // Removing refresh token from the cookies
 
         String accessToken = jwtService.extractToken(request);
-        jwtService.addToBlacklist(accessToken, 84000);
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(
-                jwtService.extractUsername(refreshToken)
-        );
+        jwtService.addToBlacklist(accessToken, jwtService.calculateTTL(accessToken)); // Adding access token to the blacklist.
 
-        log.info("User [ {} ] successfully logged out ] ", userDetails.getUsername());
+        SecurityContextHolder.getContext().setAuthentication(null);
 
+        log.info("User [ {} ] successfully logged out", jwtService.getClaims(refreshToken).getSubject());
     }
 
 

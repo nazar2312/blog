@@ -4,6 +4,7 @@ import com.portfolio.blog.domain.entities.RefreshToken;
 import com.portfolio.blog.repositories.RefreshTokenRepository;
 import com.portfolio.blog.repositories.UserRepository;
 import com.portfolio.blog.services.JwtServiceInterface;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -19,7 +20,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -92,7 +95,7 @@ public class JwtService implements JwtServiceInterface {
     @Override
     public UserDetails validateToken(String token) {
 
-        String username = extractUsername(token);
+        String username = getClaims(token).getSubject();
         return userDetailsService.loadUserByUsername(username);
     }
 
@@ -106,18 +109,6 @@ public class JwtService implements JwtServiceInterface {
         } else throw new JwtException("Jwt token wasn't provided");
     }
 
-    @Override
-    public String extractUsername(String token) {
-
-        //  Throws exception in case if token isn't valid;
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token) //Validates signature
-                .getBody()//Return claims if token is valid
-                .getSubject(); //Returns username
-    }
-
     private Key getSigningKey() {
         byte[] keyBytes = secretKey.getBytes();
         return Keys.hmacShaKeyFor(keyBytes);
@@ -126,7 +117,7 @@ public class JwtService implements JwtServiceInterface {
     @Override
     public boolean isBlacklisted(String jti) {
 
-        if(redisTemplate.hasKey("blacklist: " + jti)) throw new JwtException("Received token is in the blacklist");
+        if(redisTemplate.hasKey("blacklist:" + jti)) throw new JwtException("Received token is in the blacklist");
 
         return false;
     }
@@ -135,10 +126,26 @@ public class JwtService implements JwtServiceInterface {
     public void addToBlacklist(String jti, long ttl) {
 
         redisTemplate.opsForValue().set(
-                "blacklist: " + jti,
+                "blacklist:" + jti,
                 "true",
-                ttl,
-                TimeUnit.MILLISECONDS
+                Duration.ofMillis(ttl)
         );
+    }
+
+    @Override
+    public long calculateTTL(String accessToken) {
+
+        // Calculating TTL (time to live) by subtracting current time from token expiration;
+        return getClaims(accessToken).getExpiration().getTime() - System.currentTimeMillis();
+    }
+
+    @Override
+    public Claims getClaims(String token) {
+
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token) //Validates signature
+                .getBody(); //Return claims if token is valid
     }
 }
