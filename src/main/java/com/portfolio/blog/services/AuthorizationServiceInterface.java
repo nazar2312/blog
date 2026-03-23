@@ -1,9 +1,14 @@
 package com.portfolio.blog.services;
 
-import java.util.UUID;
+import com.portfolio.blog.domain.entities.PostEntity;
+import com.portfolio.blog.domain.entities.UserEntity;
+
 
 public interface AuthorizationServiceInterface {
 
-    public boolean canDelete(UUID postToDelete);
-    public boolean canUpdate(UUID postToUpdate);
+    void authorizeDeleting(PostEntity postToDelete, UserEntity currentUser);
+
+    void authorizeUpdating(PostEntity postToUpdate, UserEntity currentUser);
+
+    void authorizeCategoryOrTagDeleting();
 }

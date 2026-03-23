@@ -8,6 +8,9 @@ import com.portfolio.blog.mappers.CategoryMapper;
 import com.portfolio.blog.repositories.CategoryRepository;
 import com.portfolio.blog.services.CategoryServiceInterface;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,15 +18,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class CategoryService implements CategoryServiceInterface {
 
     private final CategoryRepository repository;
     private final CategoryMapper mapper;
-
-    public CategoryService(CategoryRepository repo, CategoryMapper mapper) {
-        this.repository = repo;
-        this.mapper = mapper;
-    }
+    private final AuthorizationService authorizationService;
 
     @Override
     public List<CategoryResponse> findAllCategories() {
@@ -69,7 +69,12 @@ public class CategoryService implements CategoryServiceInterface {
     @Override
     public void deleteCategory(UUID toDelete) {
 
-        repository.deleteById(toDelete);
+        try {
+            authorizationService.authorizeCategoryOrTagDeleting();
+            repository.deleteById(toDelete);
+        } catch (AuthorizationServiceException e) {
+            throw new AccessDeniedException("");
+        }
     }
 
     @Override

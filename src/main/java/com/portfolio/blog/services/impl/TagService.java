@@ -10,10 +10,11 @@ import com.portfolio.blog.services.TagServiceInterface;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -22,6 +23,7 @@ public class TagService implements TagServiceInterface {
 
     private final TagRepository repository;
     private final TagMapper mapper;
+    private final AuthorizationService authorizationService;
 
     @Override
     public TagResponse create(TagRequest request) {
@@ -40,21 +42,19 @@ public class TagService implements TagServiceInterface {
     @Transactional
     public void deleteById(UUID uuid) {
 
-        Optional<TagEntity> opt = repository.findById(uuid);
-
-        TagEntity tag = opt.get();
-
-        tag.getPosts()
-                .forEach(post -> post.getTags().remove(tag));
-
-        repository.deleteById(uuid);
-
+        try{
+            authorizationService.authorizeCategoryOrTagDeleting();
+            repository.deleteById(uuid);
+        } catch (AuthorizationServiceException e) {
+            throw new AccessDeniedException("");
+        }
     }
 
     @Override
     public List<TagEntity> verifyTags(PostRequest request) {
 
         List<TagRequest> tagsFromRequest = request.getTags();
+
         List<String> nameOfTagsFromRequest = tagsFromRequest.stream()
                 .map(TagRequest::getName)
                 .toList();

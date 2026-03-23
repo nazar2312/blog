@@ -22,7 +22,7 @@ public class ErrorController {
     public ResponseEntity<ApiErrorResponse> handleAccessDenied(AccessDeniedException ex) {
         ApiErrorResponse response = ApiErrorResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
-                .message("Action is not allowed")
+                .message("Unauthorized")
                 .build();
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }

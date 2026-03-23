@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,11 +22,8 @@ public class UserService implements UserServiceInterface {
                 .getAuthentication()
                 .getName();
 
-        Optional<UserEntity> user = repository.findByEmail(email);
-
-        if(user.isEmpty()) throw new EntityNotFoundException("User is not found");
-
-        return user.get();
+        return repository.findByEmail(email)
+                .orElseThrow(EntityNotFoundException::new);
     }
 
 
