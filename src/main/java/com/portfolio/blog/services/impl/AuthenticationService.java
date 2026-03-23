@@ -1,6 +1,9 @@
 package com.portfolio.blog.services.impl;
 
 import com.portfolio.blog.domain.dto.authentication.LoginRequest;
+import com.portfolio.blog.domain.dto.authentication.LoginResponse;
+import com.portfolio.blog.domain.dto.authentication.LogoutResponse;
+import com.portfolio.blog.domain.dto.authentication.RefreshResponse;
 import com.portfolio.blog.services.AuthenticationServiceInterface;
 import com.portfolio.blog.services.CookieServiceInterface;
 import com.portfolio.blog.services.JwtServiceInterface;
@@ -16,8 +19,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 
 @Slf4j
@@ -44,7 +45,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
 
     @Override
     @Transactional
-    public String login(LoginRequest request, HttpServletResponse servletResponse) {
+    public LoginResponse login(LoginRequest request, HttpServletResponse servletResponse) {
 
         //Authenticate user;
         UserDetails userDetails = authenticate(
@@ -58,14 +59,14 @@ public class AuthenticationService implements AuthenticationServiceInterface {
 
         cookieService.addTokenToCookie(refreshToken, servletResponse);
 
-        log.info("User [ {} ] is successfully logged in.", userDetails.getUsername());
+        log.info("User [ {} ] successfully logged in.", userDetails.getUsername());
 
-        return accessToken;
+        return LoginResponse.builder().token(accessToken).build();
     }
 
     @Transactional
     @Override
-    public String refresh(
+    public RefreshResponse refresh(
             HttpServletRequest request,
             HttpServletResponse response,
             String refreshToken
@@ -87,13 +88,13 @@ public class AuthenticationService implements AuthenticationServiceInterface {
 
             log.info("User [ {} ] has received new access token ] ", userDetails.getUsername());
 
-            return newAccessToken;
+            return RefreshResponse.builder().token(newAccessToken).build();
 
         } else throw new JwtException("Refresh token is expired/invalid");
     }
 
     @Override
-    public void logout(String refreshToken, HttpServletRequest request, HttpServletResponse response) {
+    public LogoutResponse logout(String refreshToken, HttpServletRequest request, HttpServletResponse response) {
 
         jwtService.deleteRefreshToken(refreshToken); // Removing refresh token from the database
         cookieService.removeTokenFromCookie(response);  // Removing refresh token from the cookies
@@ -105,5 +106,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         log.info("User [ {} ] successfully logged out", jwtService.getClaims(refreshToken).getSubject());
+
+        return new LogoutResponse("Logged out");
     }
 }

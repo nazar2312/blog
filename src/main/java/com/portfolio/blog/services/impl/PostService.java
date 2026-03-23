@@ -117,7 +117,7 @@ public class PostService implements PostServiceInterface {
 
             authorizationService.authorizeDeleting(postToDelete, currentUser);
             repository.deleteById(uuid);
-            log.info("{} has deleted post: {}", currentUser.getUsername(), postToDelete.getTitle());
+            log.info("User [ {} ] has deleted post: {}", currentUser.getEmail(), postToDelete.getTitle());
 
         } catch (AuthorizationServiceException e) {
             throw new AccessDeniedException("");

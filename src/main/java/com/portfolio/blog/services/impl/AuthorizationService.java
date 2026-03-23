@@ -24,13 +24,13 @@ public class AuthorizationService implements AuthorizationServiceInterface {
     public void authorizeDeleting(PostEntity postToDelete, UserEntity currentUser) {
 
         if(currentUser.getRole().equals(Role.ADMIN)
-                || currentUser.getId().equals(postToDelete.getAuthor())
+                || currentUser.getId().equals(postToDelete.getAuthor().getId())
                 && currentUser.getRole().equals(Role.USER)
         ){
             return;
           // Authorized
         } else {
-            log.warn("User: {} attempted to delete post, action unauthorized", currentUser.getEmail());
+            log.warn("User [ {} ] attempted to delete post of the user [ {} ]", currentUser.getEmail(), postToDelete.getAuthor().getEmail());
             throw new AuthorizationServiceException("");
         }
 
@@ -40,13 +40,13 @@ public class AuthorizationService implements AuthorizationServiceInterface {
     public void authorizeUpdating(PostEntity postToUpdate, UserEntity currentUser) {
 
         if(currentUser.getRole().equals(Role.ADMIN)
-                || currentUser.getId().equals(postToUpdate.getAuthor())
+                || currentUser.getId().equals(postToUpdate.getAuthor().getId())
                 && currentUser.getRole().equals(Role.USER)
         ){
             return;
             // Authorized
         } else {
-            log.warn("User: {} attempted to update post, action unauthorized", currentUser.getEmail());
+            log.warn("User [ {} ] attempted to update post of the user [ {} ]", currentUser.getEmail(), postToUpdate.getAuthor().getEmail());
             throw new AuthorizationServiceException("");
         }
     }

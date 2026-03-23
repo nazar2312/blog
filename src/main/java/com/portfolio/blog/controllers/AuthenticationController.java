@@ -2,9 +2,9 @@ package com.portfolio.blog.controllers;
 
 import com.portfolio.blog.domain.dto.authentication.LoginRequest;
 import com.portfolio.blog.domain.dto.authentication.LoginResponse;
+import com.portfolio.blog.domain.dto.authentication.LogoutResponse;
 import com.portfolio.blog.domain.dto.authentication.RefreshResponse;
 import com.portfolio.blog.services.AuthenticationServiceInterface;
-import com.portfolio.blog.services.impl.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,40 +21,36 @@ public class AuthenticationController {
     private final AuthenticationServiceInterface authenticationService;
 
     @PostMapping(path = "/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request, HttpServletResponse servletResponse) {
-
-        String accessToken = authenticationService.login(request,servletResponse);
-
-        return ResponseEntity.ok(LoginResponse.builder()
-                .token(accessToken)
-                .build()
-        );
+    public ResponseEntity<LoginResponse> login(
+            @RequestBody LoginRequest request,
+            HttpServletResponse servletResponse
+    ) {
+        LoginResponse loginResponse = authenticationService.login(request, servletResponse);
+        return ResponseEntity.ok(loginResponse);
     }
 
     @PostMapping(path = "/refresh")
-    public ResponseEntity<RefreshResponse> refresh (
+    public ResponseEntity<RefreshResponse> refresh(
             @CookieValue(name = "refreshToken")
             String refreshToken,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-
-        String access = authenticationService.refresh(request, response, refreshToken);
-
-        return ResponseEntity.ok(new RefreshResponse(access));
+        RefreshResponse refreshResponse = authenticationService.refresh(request, response, refreshToken);
+        return ResponseEntity.ok(refreshResponse);
 
     }
 
     @PostMapping(path = "/logout")
-    public ResponseEntity<String> logout(
+    public ResponseEntity<LogoutResponse> logout(
             @CookieValue(name = "refreshToken")
             String refreshToken,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
 
-        authenticationService.logout(refreshToken, request, response);
+        LogoutResponse logoutResponse = authenticationService.logout(refreshToken, request, response);
 
-        return ResponseEntity.ok("Successfully logged out");
+        return ResponseEntity.ok(logoutResponse);
     }
 }

@@ -9,6 +9,8 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -86,7 +88,9 @@ public class JwtService implements JwtServiceInterface {
     @Override
     @Transactional
     public void deleteRefreshToken(String refreshToken) {
-        RefreshToken tokenToDelete = refreshTokenRepository.findByToken(refreshToken).get();
+
+        RefreshToken tokenToDelete = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(EntityNotFoundException::new);
         refreshTokenRepository.delete(tokenToDelete);
     }
 
