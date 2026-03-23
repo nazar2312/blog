@@ -48,6 +48,7 @@ public class PostService implements PostServiceInterface {
     }
 
     @Override
+    @Transactional
     public PostResponse findOne(UUID id) {
 
         Optional<PostEntity> post = repository.findById(id);
@@ -58,6 +59,7 @@ public class PostService implements PostServiceInterface {
     }
 
     @Override
+    @Transactional
     public PostResponse create(PostRequest request) {
 
         PostEntity postEntity = mapper.requestToEntity(request);
@@ -97,6 +99,7 @@ public class PostService implements PostServiceInterface {
     }
 
     @Override
+    @Transactional
     public void delete(UUID uuid) {
 
         //  If Role.ADMIN user is allowed to delete posts of any user.

@@ -2,7 +2,7 @@ package com.portfolio.blog.controllers;
 
 import com.portfolio.blog.domain.dto.post.PostRequest;
 import com.portfolio.blog.domain.dto.post.PostResponse;
-import com.portfolio.blog.services.impl.PostService;
+import com.portfolio.blog.services.PostServiceInterface;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,7 +32,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PostController {
 
-    private final PostService service;
+    private final PostServiceInterface service;
 
     @GetMapping
     public ResponseEntity<List<PostResponse>> findAll() {

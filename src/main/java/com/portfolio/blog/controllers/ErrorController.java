@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -57,13 +56,6 @@ public class ErrorController {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiErrorResponse> handleBadCredentials(BadCredentialsException ex) {
 
-        Authentication request = ex.getAuthenticationRequest();
-        log.warn("Bad credentials received - authorization failed for user "
-                + "[ " + request.getName() + " ]"
-                + " with password "
-                + "[ " + request.getCredentials() + " ]"
-        );
-
         ApiErrorResponse response = ApiErrorResponse.builder()
                 .status(HttpStatus.FORBIDDEN.value())
                 .message("Incorrect password or username")
@@ -73,8 +65,6 @@ public class ErrorController {
     }
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleEntityNotFound(EntityNotFoundException ex) {
-
-        log.warn("| Exception (EntityNotFound) - handled | User received message - '" + ex.getMessage() + "' |");
 
         ApiErrorResponse response = ApiErrorResponse.builder()
                 .status(HttpStatus.NOT_FOUND.value())

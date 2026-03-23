@@ -48,13 +48,13 @@ public class CategoryService implements CategoryServiceInterface {
     }
 
     @Override
-    public CategoryEntity findCategoryByName(String name) {
+    public CategoryResponse findCategoryByName(String name) {
 
-        Optional<CategoryEntity> optional = repository.findByName(name);
+        Optional<CategoryEntity> category = repository.findByName(name);
 
-        if(optional.isEmpty()) throw new EntityNotFoundException("Category does not exists");
+        if(category.isEmpty()) throw new EntityNotFoundException("Only existing categories can be viewed");
 
-        return optional.get();
+        return mapper.entityToResponse(category.get());
     }
 
     @Override
@@ -72,8 +72,10 @@ public class CategoryService implements CategoryServiceInterface {
         repository.deleteById(toDelete);
     }
 
+    @Override
     public CategoryEntity verifyCategory(PostRequest request) {
 
+        //  Method is only used by postService while creating new post.
         String name = request.getCategory().getName();
         if(name == null || name.isBlank()) throw new IllegalArgumentException("Please enter category name");
 

@@ -3,6 +3,7 @@ package com.portfolio.blog.controllers;
 import com.portfolio.blog.domain.dto.authentication.LoginRequest;
 import com.portfolio.blog.domain.dto.authentication.LoginResponse;
 import com.portfolio.blog.domain.dto.authentication.RefreshResponse;
+import com.portfolio.blog.services.AuthenticationServiceInterface;
 import com.portfolio.blog.services.impl.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthenticationController {
 
-    private final AuthenticationService authenticationService;
+    private final AuthenticationServiceInterface authenticationService;
 
     @PostMapping(path = "/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request, HttpServletResponse servletResponse) {

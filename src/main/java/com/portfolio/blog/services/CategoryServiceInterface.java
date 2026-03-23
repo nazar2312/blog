@@ -12,7 +12,7 @@ public interface CategoryServiceInterface {
 
      List<CategoryResponse> findAllCategories();
      CategoryResponse findCategoryById(UUID id);
-     CategoryEntity findCategoryByName(String name);
+     CategoryResponse findCategoryByName(String name);
      CategoryResponse createCategory(CategoryRequest category);
      void deleteCategory(UUID toDelete);
      CategoryEntity verifyCategory(PostRequest request);

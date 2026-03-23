@@ -2,7 +2,7 @@ package com.portfolio.blog.controllers;
 
 import com.portfolio.blog.domain.dto.tag.TagRequest;
 import com.portfolio.blog.domain.dto.tag.TagResponse;
-import com.portfolio.blog.services.impl.TagService;
+import com.portfolio.blog.services.TagServiceInterface;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TagController {
 
-    private final TagService service;
+    private final TagServiceInterface service;
 
     @GetMapping
     public ResponseEntity<List<TagResponse>> findAll() {

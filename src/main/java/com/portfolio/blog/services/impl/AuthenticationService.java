@@ -12,15 +12,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
-import java.sql.Time;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.util.UUID;
 
 
 @Slf4j
@@ -74,7 +71,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
             String refreshToken
     ) {
 
-        if (jwtService.validateRefreshToken(refreshToken) ) {
+        if (jwtService.validateRefreshToken(refreshToken)) {
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(
                     jwtService.getClaims(refreshToken).getSubject()
@@ -103,12 +100,10 @@ public class AuthenticationService implements AuthenticationServiceInterface {
 
         String accessToken = jwtService.extractToken(request);
 
-        jwtService.addToBlacklist(accessToken, jwtService.calculateTTL(accessToken)); // Adding access token to the blacklist.
+        jwtService.addToBlacklist(accessToken); // Adding access token to the blacklist.
 
         SecurityContextHolder.getContext().setAuthentication(null);
 
         log.info("User [ {} ] successfully logged out", jwtService.getClaims(refreshToken).getSubject());
     }
-
-
 }

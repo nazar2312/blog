@@ -18,9 +18,7 @@ public interface JwtServiceInterface {
     Claims getClaims(String token);
 
 
-    boolean isBlacklisted(String jti);
-    void addToBlacklist(String jti, long ttl);
+    void isBlacklisted(String jti);
+    void addToBlacklist(String jti);
 
-
-    long calculateTTL(String accessToken);
 }

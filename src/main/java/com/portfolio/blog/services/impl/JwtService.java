@@ -22,9 +22,7 @@ import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -88,7 +86,7 @@ public class JwtService implements JwtServiceInterface {
     @Override
     @Transactional
     public void deleteRefreshToken(String refreshToken) {
-        RefreshToken tokenToDelete =  refreshTokenRepository.findByToken(refreshToken).get();
+        RefreshToken tokenToDelete = refreshTokenRepository.findByToken(refreshToken).get();
         refreshTokenRepository.delete(tokenToDelete);
     }
 
@@ -109,34 +107,22 @@ public class JwtService implements JwtServiceInterface {
         } else throw new JwtException("Jwt token wasn't provided");
     }
 
-    private Key getSigningKey() {
-        byte[] keyBytes = secretKey.getBytes();
-        return Keys.hmacShaKeyFor(keyBytes);
+
+    @Override
+    public void isBlacklisted(String jti) {
+
+        if (redisTemplate.hasKey("blacklist:" + jti)) throw new JwtException("Received token is in the blacklist");
+
     }
 
     @Override
-    public boolean isBlacklisted(String jti) {
-
-        if(redisTemplate.hasKey("blacklist:" + jti)) throw new JwtException("Received token is in the blacklist");
-
-        return false;
-    }
-
-    @Override
-    public void addToBlacklist(String jti, long ttl) {
+    public void addToBlacklist(String jti) {
 
         redisTemplate.opsForValue().set(
                 "blacklist:" + jti,
                 "true",
-                Duration.ofMillis(ttl)
+                Duration.ofMillis(calculateTTL(jti))
         );
-    }
-
-    @Override
-    public long calculateTTL(String accessToken) {
-
-        // Calculating TTL (time to live) by subtracting current time from token expiration;
-        return getClaims(accessToken).getExpiration().getTime() - System.currentTimeMillis();
     }
 
     @Override
@@ -147,5 +133,15 @@ public class JwtService implements JwtServiceInterface {
                 .build()
                 .parseClaimsJws(token) //Validates signature
                 .getBody(); //Return claims if token is valid
+    }
+
+    private long calculateTTL(String accessToken) {
+        // Calculating TTL (time to live) by subtracting current time from token expiration;
+        return getClaims(accessToken).getExpiration().getTime() - System.currentTimeMillis();
+    }
+
+    private Key getSigningKey() {
+        byte[] keyBytes = secretKey.getBytes();
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 }
