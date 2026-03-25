@@ -1,6 +1,7 @@
 package com.portfolio.blog.security;
 
 import com.portfolio.blog.domain.entities.UserEntity;
+import com.portfolio.blog.exceptions.ResourceNotFoundException;
 import com.portfolio.blog.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,7 +22,7 @@ public class BlogUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         UserEntity user = repository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found by email: " + email));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found by email: " + email));
         return new BlogUserDetails(user);
     }
 

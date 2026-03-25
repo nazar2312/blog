@@ -57,9 +57,6 @@ public class PostEntity {
     @Column(nullable = false)
     private StatusEntity status;
 
-    @Column(nullable = false)
-    private Integer readingTime;
-
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_category", nullable = false)

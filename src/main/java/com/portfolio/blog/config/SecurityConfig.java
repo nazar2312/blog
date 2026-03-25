@@ -1,5 +1,6 @@
 package com.portfolio.blog.config;
 
+import com.portfolio.blog.exceptions.UnauthenticatedException;
 import com.portfolio.blog.security.JwtAuthenticationFilter;
 import com.portfolio.blog.services.JwtServiceInterface;
 import io.jsonwebtoken.JwtException;
@@ -44,8 +45,8 @@ public class SecurityConfig {
                             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                     ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
             return http.build();
-        } catch (JwtException e) {
-            throw new JwtException("Security filter chain failed");
+        } catch (UnauthenticatedException e) {
+            throw e;
         }
     }
 

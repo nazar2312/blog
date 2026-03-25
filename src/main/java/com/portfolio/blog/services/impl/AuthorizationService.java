@@ -3,11 +3,11 @@ package com.portfolio.blog.services.impl;
 import com.portfolio.blog.domain.entities.PostEntity;
 import com.portfolio.blog.domain.entities.Role;
 import com.portfolio.blog.domain.entities.UserEntity;
+import com.portfolio.blog.exceptions.ForbiddenException;
 import com.portfolio.blog.services.AuthorizationServiceInterface;
 import com.portfolio.blog.services.UserServiceInterface;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -31,7 +31,7 @@ public class AuthorizationService implements AuthorizationServiceInterface {
           // Authorized
         } else {
             log.warn("User [ {} ] attempted to delete post of the user [ {} ]", currentUser.getEmail(), postToDelete.getAuthor().getEmail());
-            throw new AuthorizationServiceException("");
+            throw new ForbiddenException("Only deleting of own posts is permitted");
         }
 
     }
@@ -47,14 +47,14 @@ public class AuthorizationService implements AuthorizationServiceInterface {
             // Authorized
         } else {
             log.warn("User [ {} ] attempted to update post of the user [ {} ]", currentUser.getEmail(), postToUpdate.getAuthor().getEmail());
-            throw new AuthorizationServiceException("");
+            throw new ForbiddenException("Only updating of own posts is permitted");
         }
     }
 
     @Override
     public void authorizeCategoryOrTagDeleting(){
         if(!userService.extractUserFromSecurityContextHolder().getRole().equals(Role.ADMIN)) {
-            throw new AuthorizationServiceException("");
+            throw new ForbiddenException("Action is not permitted");
         }
     }
 }

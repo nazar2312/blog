@@ -4,10 +4,10 @@ import com.portfolio.blog.domain.dto.authentication.LoginRequest;
 import com.portfolio.blog.domain.dto.authentication.LoginResponse;
 import com.portfolio.blog.domain.dto.authentication.LogoutResponse;
 import com.portfolio.blog.domain.dto.authentication.RefreshResponse;
+import com.portfolio.blog.exceptions.UnauthenticatedException;
 import com.portfolio.blog.services.AuthenticationServiceInterface;
 import com.portfolio.blog.services.CookieServiceInterface;
 import com.portfolio.blog.services.JwtServiceInterface;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -37,8 +38,12 @@ public class AuthenticationService implements AuthenticationServiceInterface {
     public UserDetails authenticate(String email, String password) {
 
         //  Verifying user email and password, exception is thrown if data is invalid;
-        authManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-
+        try {
+            authManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+        } catch (AuthenticationException e) {
+            log.warn("| Authentication failed | Exception message - {}  |", e.getMessage());
+            throw new UnauthenticatedException("Unauthenticated ");
+        }
         //  Returning User Details if username and password is valid (exception is not thrown)
         return userDetailsService.loadUserByUsername(email);
     }
@@ -72,25 +77,21 @@ public class AuthenticationService implements AuthenticationServiceInterface {
             String refreshToken
     ) {
 
-        if (jwtService.validateRefreshToken(refreshToken)) {
+        jwtService.validateRefreshToken(refreshToken); //AuthenticationException is thrown if token isn't valid;
 
-            UserDetails userDetails = userDetailsService.loadUserByUsername(
-                    jwtService.getClaims(refreshToken).getSubject()
-            );
+        UserDetails userDetails = userDetailsService.loadUserByUsername(
+                jwtService.getClaims(refreshToken).getSubject()
+        );
 
-            cookieService.removeTokenFromCookie(response);
-            jwtService.deleteRefreshToken(refreshToken);
+        cookieService.removeTokenFromCookie(response);
+        jwtService.deleteRefreshToken(refreshToken);
 
-            var newRefreshToken = jwtService.generateRefreshToken(userDetails);
-            var newAccessToken = jwtService.generateToken(userDetails);
+        cookieService.addTokenToCookie(
+                jwtService.generateRefreshToken(userDetails),
+                response
+        );
 
-            cookieService.addTokenToCookie(newRefreshToken, response);
-
-            log.info("User [ {} ] has received new access token ] ", userDetails.getUsername());
-
-            return RefreshResponse.builder().token(newAccessToken).build();
-
-        } else throw new JwtException("Refresh token is expired/invalid");
+        return RefreshResponse.builder().token(jwtService.generateToken(userDetails)).build();
     }
 
     @Override

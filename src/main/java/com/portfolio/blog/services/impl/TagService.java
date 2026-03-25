@@ -4,14 +4,12 @@ import com.portfolio.blog.domain.dto.post.PostRequest;
 import com.portfolio.blog.domain.dto.tag.TagRequest;
 import com.portfolio.blog.domain.dto.tag.TagResponse;
 import com.portfolio.blog.domain.entities.TagEntity;
+import com.portfolio.blog.exceptions.ConflictException;
 import com.portfolio.blog.mappers.TagMapper;
 import com.portfolio.blog.repositories.TagRepository;
 import com.portfolio.blog.services.TagServiceInterface;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,6 +31,7 @@ public class TagService implements TagServiceInterface {
 
     @Override
     public List<TagResponse> findAll() {
+
         return repository.findAll().stream().map(
                         mapper::entityToResponse)
                 .toList();
@@ -42,12 +41,8 @@ public class TagService implements TagServiceInterface {
     @Transactional
     public void deleteById(UUID uuid) {
 
-        try{
-            authorizationService.authorizeCategoryOrTagDeleting();
-            repository.deleteById(uuid);
-        } catch (AuthorizationServiceException e) {
-            throw new AccessDeniedException("");
-        }
+        authorizationService.authorizeCategoryOrTagDeleting(); //Exception is thrown if not authorized;
+        repository.deleteById(uuid);
     }
 
     @Override
@@ -62,7 +57,8 @@ public class TagService implements TagServiceInterface {
         List<TagEntity> tags = repository.findTagEntitiesByNameIn(nameOfTagsFromRequest);
 
         if (tags.size() != tagsFromRequest.size())
-            throw new EntityNotFoundException("Only existing tags can be assigned");
+
+            throw new ConflictException("Only existing tags can be assigned");
 
         return tags;
     }

@@ -8,7 +8,7 @@ public interface JwtServiceInterface {
 
     // Refresh token operations
     String generateRefreshToken(UserDetails details);
-    boolean validateRefreshToken(String token);
+    void validateRefreshToken(String token);
     void deleteRefreshToken(String refreshToken);
 
     //  Access token operations

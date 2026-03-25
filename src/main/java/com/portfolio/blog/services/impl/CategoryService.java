@@ -4,6 +4,7 @@ import com.portfolio.blog.domain.dto.category.CategoryResponse;
 import com.portfolio.blog.domain.dto.category.CategoryRequest;
 import com.portfolio.blog.domain.dto.post.PostRequest;
 import com.portfolio.blog.domain.entities.CategoryEntity;
+import com.portfolio.blog.exceptions.ResourceNotFoundException;
 import com.portfolio.blog.mappers.CategoryMapper;
 import com.portfolio.blog.repositories.CategoryRepository;
 import com.portfolio.blog.services.CategoryServiceInterface;
@@ -30,8 +31,6 @@ public class CategoryService implements CategoryServiceInterface {
 
         List<CategoryEntity> categories = repository.findAll();
 
-        if(categories.isEmpty()) throw new EntityNotFoundException();
-
         return categories.stream()
                 .map(mapper::entityToResponse)
                 .toList();
@@ -40,21 +39,20 @@ public class CategoryService implements CategoryServiceInterface {
     @Override
     public CategoryResponse findCategoryById(UUID id) {
 
-        Optional<CategoryEntity> category = repository.findById(id);
-        
-        if(category.isEmpty()) throw new EntityNotFoundException("Only existing categories can be viewed");
-        
-        return mapper.entityToResponse(category.get());
+        CategoryEntity category = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category is not found with such id: " + id));
+
+        return mapper.entityToResponse(category);
     }
 
     @Override
     public CategoryResponse findCategoryByName(String name) {
 
-        Optional<CategoryEntity> category = repository.findByName(name);
+        CategoryEntity category = repository.findByName(name)
+                .orElseThrow(() -> new ResourceNotFoundException("Category with name: " + name + " is not found"));
 
-        if(category.isEmpty()) throw new EntityNotFoundException("Only existing categories can be viewed");
 
-        return mapper.entityToResponse(category.get());
+        return mapper.entityToResponse(category);
     }
 
     @Override
@@ -63,31 +61,23 @@ public class CategoryService implements CategoryServiceInterface {
         CategoryEntity entity = mapper.requestToEntity(request);
 
         return mapper.entityToResponse(repository.save(entity));
-
     }
 
     @Override
     public void deleteCategory(UUID toDelete) {
 
-        try {
-            authorizationService.authorizeCategoryOrTagDeleting();
-            repository.deleteById(toDelete);
-        } catch (AuthorizationServiceException e) {
-            throw new AccessDeniedException("");
-        }
+        authorizationService.authorizeCategoryOrTagDeleting(); // Forbidden exception is thrown in case if unauthorized;
+        repository.deleteById(toDelete);
     }
 
-    @Override
+
+    @Override //  Method is only used by postService when creating new post.
     public CategoryEntity verifyCategory(PostRequest request) {
 
-        //  Method is only used by postService while creating new post.
         String name = request.getCategory().getName();
-        if(name == null || name.isBlank()) throw new IllegalArgumentException("Please enter category name");
 
-        Optional<CategoryEntity> category = repository.findByName(name);
-        if(category.isEmpty()) throw new EntityNotFoundException("Only existing category can be assigned to the post");
-
-        return category.get();
+        return repository.findByName(name)
+                .orElseThrow(() -> new ResourceNotFoundException("Only existing category can be assigned to the post"));
     }
 
 }

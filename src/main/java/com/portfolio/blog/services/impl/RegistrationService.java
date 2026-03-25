@@ -3,6 +3,7 @@ package com.portfolio.blog.services.impl;
 import com.portfolio.blog.domain.dto.authentication.RegistrationRequest;
 import com.portfolio.blog.domain.entities.Role;
 import com.portfolio.blog.domain.entities.UserEntity;
+import com.portfolio.blog.exceptions.ConflictException;
 import com.portfolio.blog.repositories.UserRepository;
 import com.portfolio.blog.services.RegistrationServiceInterface;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class RegistrationService implements RegistrationServiceInterface {
                     null
             );
             repository.save(userEntity);
-        } else throw new IllegalArgumentException("User is already exists");
+
+        } else throw new ConflictException("User is already exists");
     }
 }

@@ -35,6 +35,7 @@ public class PostRequest {
     CategoryRequest category;
 
     @NotEmpty(message = "Tags must be provided")
+    @Size(max = 20)
     @Valid
     List<TagRequest> tags;
 }

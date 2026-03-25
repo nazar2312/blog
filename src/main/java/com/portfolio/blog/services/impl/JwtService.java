@@ -1,6 +1,7 @@
 package com.portfolio.blog.services.impl;
 
 import com.portfolio.blog.domain.entities.RefreshToken;
+import com.portfolio.blog.exceptions.UnauthenticatedException;
 import com.portfolio.blog.repositories.RefreshTokenRepository;
 import com.portfolio.blog.repositories.UserRepository;
 import com.portfolio.blog.services.JwtServiceInterface;
@@ -9,7 +10,6 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -64,11 +64,16 @@ public class JwtService implements JwtServiceInterface {
 
         refreshTokenRepository.save(refreshTokenEntity);
 
+        log.info("New refresh token was generated for user {}", details.getUsername());
+
         return token;
     }
 
     @Override
     public String generateToken(UserDetails details) {
+
+        log.info("New access token was generated for user {}", details.getUsername());
+
         return Jwts.builder()
                 .setSubject(details.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
@@ -78,26 +83,27 @@ public class JwtService implements JwtServiceInterface {
     }
 
     @Override
-    public boolean validateRefreshToken(String token) {
+    public void validateRefreshToken(String token) {
 
         var refresh = refreshTokenRepository.findByToken(token);
 
-        return refresh.isPresent() && LocalDateTime.now().isBefore(refresh.get().getExpiringAt());
+        if(refresh.isEmpty() || LocalDateTime.now().isAfter(refresh.get().getExpiringAt()) ) {
+            throw new UnauthenticatedException("Authentication failed");
+        }
     }
 
     @Override
     @Transactional
     public void deleteRefreshToken(String refreshToken) {
 
-        RefreshToken tokenToDelete = refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(EntityNotFoundException::new);
-        refreshTokenRepository.delete(tokenToDelete);
+        refreshTokenRepository.deleteByToken(refreshToken);
     }
 
     @Override
     public UserDetails validateToken(String token) {
+        System.out.println("valideation");
+        String username = getClaims(token).getSubject(); //Return claims if token is valid
 
-        String username = getClaims(token).getSubject();
         return userDetailsService.loadUserByUsername(username);
     }
 
@@ -108,14 +114,14 @@ public class JwtService implements JwtServiceInterface {
 
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
-        } else throw new JwtException("Jwt token wasn't provided");
+        } else throw new UnauthenticatedException("Authentication failed");
     }
 
 
     @Override
     public void isBlacklisted(String jti) {
 
-        if (redisTemplate.hasKey("blacklist:" + jti)) throw new JwtException("Received token is in the blacklist");
+        if (redisTemplate.hasKey("blacklist:" + jti)) throw new UnauthenticatedException("Authentication failed");
 
     }
 

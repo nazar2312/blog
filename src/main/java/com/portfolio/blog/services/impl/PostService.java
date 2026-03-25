@@ -7,12 +7,11 @@ import com.portfolio.blog.domain.entities.UserEntity;
 import com.portfolio.blog.mappers.PostMapper;
 import com.portfolio.blog.repositories.PostRepository;
 import com.portfolio.blog.services.*;
-import jakarta.persistence.EntityNotFoundException;
+import com.portfolio.blog.exceptions.ResourceNotFoundException;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,8 +35,6 @@ public class PostService implements PostServiceInterface {
 
         List<PostEntity> posts = repository.findAll();
 
-        if (posts.isEmpty()) throw new EntityNotFoundException("Posts are not found");
-
         return posts.stream()
                 .map(mapper::entityToResponse)
                 .toList();
@@ -48,7 +45,7 @@ public class PostService implements PostServiceInterface {
     public PostResponse findOne(UUID id) {
 
         PostEntity post = repository.findById(id)
-                .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Post is not found "));
         return mapper.entityToResponse(post);
     }
 
@@ -59,9 +56,6 @@ public class PostService implements PostServiceInterface {
         PostEntity postEntity = mapper.requestToEntity(request);
 
         postEntity.setAuthor(userService.extractUserFromSecurityContextHolder());
-        postEntity.setReadingTime(
-                calculateReadingTime(request.getContent())
-        );
         postEntity.setCategory(categoryService.verifyCategory(request));
         postEntity.setTags(tagService.verifyTags(request));
 
@@ -76,29 +70,21 @@ public class PostService implements PostServiceInterface {
     public PostResponse update(UUID uuid, PostRequest request) {
 
         PostEntity postToUpdate = repository.findById(uuid)
-                .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Post is not found "));
+
         UserEntity currentUser = userService.extractUserFromSecurityContextHolder();
 
-        try {
+        authorizationService.authorizeUpdating(postToUpdate, currentUser); //Exception is thrown if not authorized;
 
-            authorizationService.authorizeUpdating(postToUpdate, currentUser);
-
-            postToUpdate.setTitle(request.getTitle());
-            postToUpdate.setContent(request.getContent());
-            postToUpdate.setStatus(request.getStatus());
-            postToUpdate.setCategory(
-                    categoryService.verifyCategory(request)
-            );
-            postToUpdate.setTags(
-                    tagService.verifyTags(request)
-            );
-            postToUpdate.setReadingTime(
-                    calculateReadingTime(request.getContent())
-            );
-
-        } catch (AuthorizationServiceException e) {
-            throw new AccessDeniedException("");
-        }
+        postToUpdate.setTitle(request.getTitle());
+        postToUpdate.setContent(request.getContent());
+        postToUpdate.setStatus(request.getStatus());
+        postToUpdate.setCategory(
+                categoryService.verifyCategory(request)
+        );
+        postToUpdate.setTags(
+                tagService.verifyTags(request)
+        );
 
         return mapper.entityToResponse(
                 repository.save(postToUpdate)
@@ -110,30 +96,15 @@ public class PostService implements PostServiceInterface {
     public void delete(UUID uuid) {
 
         PostEntity postToDelete = repository.findById(uuid)
-                .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Post is not found"));
+
         UserEntity currentUser = userService.extractUserFromSecurityContextHolder();
 
-        try {
+        authorizationService.authorizeDeleting(postToDelete, currentUser); //Exception is thrown if unauthorized;
+        repository.deleteById(uuid);
 
-            authorizationService.authorizeDeleting(postToDelete, currentUser);
-            repository.deleteById(uuid);
-            log.info("User [ {} ] has deleted post: {}", currentUser.getEmail(), postToDelete.getTitle());
+        log.info("User [ {} ] has deleted post: {}", currentUser.getEmail(), postToDelete.getTitle());
 
-        } catch (AuthorizationServiceException e) {
-            throw new AccessDeniedException("");
-        }
-
-    }
-
-    private int calculateReadingTime(String content) {
-
-        int wordsInTheContent = content.trim().split("\\s+").length;
-        int averagePerSecond = 3;
-
-        // return 60 seconds if less than 200 words;
-        if (wordsInTheContent < 200) return 60;
-
-        return wordsInTheContent / averagePerSecond;
     }
 }
 

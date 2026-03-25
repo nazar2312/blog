@@ -1,27 +1,23 @@
 package com.portfolio.blog.domain.dto.error;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.List;
+import org.springframework.http.HttpStatus;
+import java.time.Instant;
 
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ApiErrorResponse {
+
+    private String errorCode;
     private int status;
     private String message;
-    private List<FieldError> errors;
+    private Instant timestamp;
+    private String path;
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    private static class FieldError {
-        private String field;
-        private String message;
+    public ApiErrorResponse (HttpStatus status, String message, String path) {
+        this.errorCode = status.getReasonPhrase();
+        this.status = status.value();
+        this.message = message;
+        this.timestamp = Instant.now();
+        this.path = path;
     }
 }
