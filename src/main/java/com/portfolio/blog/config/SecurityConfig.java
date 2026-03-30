@@ -32,7 +32,7 @@ public class SecurityConfig {
         try {
             http
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers(HttpMethod.POST, "/api/registration**").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/api/registration/**").permitAll()
                             .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
@@ -47,6 +47,7 @@ public class SecurityConfig {
             return http.build();
         } catch (UnauthenticatedException e) {
             throw e;
+
         }
     }
 

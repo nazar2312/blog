@@ -3,6 +3,7 @@ package com.portfolio.blog.domain.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -14,7 +15,6 @@ import java.util.UUID;
 @Setter
 @Builder
 public class RefreshToken {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false, updatable = false, unique = true)
@@ -36,7 +36,6 @@ public class RefreshToken {
     @PrePersist
     protected void prePersist(){
         this.issuedAt = LocalDateTime.now();
-        this.expiringAt = issuedAt.plusDays(30);
     }
 
 }

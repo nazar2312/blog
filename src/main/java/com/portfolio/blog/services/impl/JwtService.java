@@ -10,7 +10,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,12 +55,13 @@ public class JwtService implements JwtServiceInterface {
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
 
-        RefreshToken refreshTokenEntity = RefreshToken.builder()
+        RefreshToken refreshToken= RefreshToken.builder()
                 .token(token)
                 .user(userRepository.findByEmail(details.getUsername()).get())
+                .expiringAt(LocalDateTime.now().plusSeconds(refreshExpiry/1000))
                 .build();
 
-        refreshTokenRepository.save(refreshTokenEntity);
+        refreshTokenRepository.save(refreshToken);
 
         return token;
     }
@@ -109,7 +110,9 @@ public class JwtService implements JwtServiceInterface {
 
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
-        } else throw new UnauthenticatedException("Authentication failed");
+        }
+
+        return null;
     }
 
 

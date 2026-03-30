@@ -4,6 +4,7 @@ import com.portfolio.blog.domain.dto.authentication.LoginRequest;
 import com.portfolio.blog.domain.dto.authentication.LoginResponse;
 import com.portfolio.blog.domain.dto.authentication.LogoutResponse;
 import com.portfolio.blog.domain.dto.authentication.RefreshResponse;
+import com.portfolio.blog.domain.entities.UserEntity;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,4 +17,6 @@ public interface AuthenticationServiceInterface {
     RefreshResponse refresh(HttpServletRequest request, HttpServletResponse response, String refreshToken);
 
     LogoutResponse logout(String refreshToken, HttpServletRequest request, HttpServletResponse response);
+
+    UserEntity getUserFromSecurityContextHolder();
 }

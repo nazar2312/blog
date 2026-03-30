@@ -8,14 +8,10 @@ import com.portfolio.blog.exceptions.ResourceNotFoundException;
 import com.portfolio.blog.mappers.CategoryMapper;
 import com.portfolio.blog.repositories.CategoryRepository;
 import com.portfolio.blog.services.CategoryServiceInterface;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service

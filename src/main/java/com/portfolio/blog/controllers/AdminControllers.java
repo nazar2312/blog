@@ -1,7 +1,9 @@
 package com.portfolio.blog.controllers;
 
 import com.portfolio.blog.domain.dto.post.PostResponse;
-import com.portfolio.blog.services.PostServiceInterface;
+import com.portfolio.blog.domain.dto.user.User;
+import com.portfolio.blog.services.AdministrationServiceInterface;
+import com.portfolio.blog.services.impl.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,14 +15,22 @@ import java.util.UUID;
 @RequestMapping(path = "/api/admin")
 public class AdminControllers {
 
-    private final PostServiceInterface postService;
+    private final AdministrationServiceInterface administrationServices;
+    private final PostService postService;
 
-    @PostMapping(path = "/delete_post/{id}")
-    public ResponseEntity<PostResponse> deletePost(@PathVariable UUID id) {
+    @PostMapping(path = "/delete_post/{uuid}")
+    public ResponseEntity<PostResponse> deletePost(@PathVariable UUID uuid) {
 
-        postService.delete(id);
+        postService.delete(uuid);
 
         return ResponseEntity.noContent().build();
+    }
+    @PostMapping(path = "/users/block-user/{uuid}")
+    public ResponseEntity<String> blockUser(@PathVariable UUID uuid) {
+
+        User blockedUser = administrationServices.block(uuid);
+
+        return ResponseEntity.ok().body("User [" + blockedUser.email() +  " ] was permanently blocked" );
     }
 
 

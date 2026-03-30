@@ -24,7 +24,6 @@ public class PostResponse {
     LocalDateTime created;
     User author;
     StatusEntity status;
-    Integer readingTime;
     CategoryResponse category;
     List<TagResponse> tags;
 }

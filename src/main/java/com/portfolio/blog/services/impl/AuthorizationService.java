@@ -53,8 +53,9 @@ public class AuthorizationService implements AuthorizationServiceInterface {
 
     @Override
     public void authorizeCategoryOrTagDeleting(){
-        if(!userService.extractUserFromSecurityContextHolder().getRole().equals(Role.ADMIN)) {
+        if(!userService.getUserFromSecurityContextHolder().getRole().equals(Role.ADMIN)) {
             throw new ForbiddenException("Action is not permitted");
         }
     }
+
 }

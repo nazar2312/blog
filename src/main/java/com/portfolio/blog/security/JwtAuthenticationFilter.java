@@ -29,42 +29,42 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        try {
+        String token = jwtService.extractToken(request);
 
-            String token = jwtService.extractToken(request);
-            jwtService.isBlacklisted(token);
-            UserDetails userDetails = jwtService.validateToken(token);
+        if (token != null) {
+            try {
+                jwtService.isBlacklisted(token);
+                UserDetails userDetails = jwtService.validateToken(token);
 
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                    userDetails,
-                    null,
-                    userDetails.getAuthorities()
-            );
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
-        } catch (JwtException | UnauthenticatedException ex) {
-            //unauthorized
-            log.warn("JWT authentication filter failed | Error message - {}", ex.getMessage());
-            response.setStatus(401);
-            return;
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            } catch (JwtException | UnauthenticatedException ex) {
+                //unauthorized
+                log.warn("JWT authentication filter failed | Error message - {}", ex.getMessage());
+            }
         }
 
         filterChain.doFilter(request, response);
+
     }
 
     // Specifying endpoints that should not be filtered;
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-
-        String path = request.getServletPath();
-
-        return
-                path.startsWith("/api/registration") ||
-                        path.startsWith("/api/auth") ||
-                        request.getMethod().equals("GET") && path.startsWith("/api/posts") ||
-                        request.getMethod().equals("GET") && path.startsWith("/api/categories") ||
-                        request.getMethod().equals("GET") && path.startsWith("/api/tags");
-    }
+//    @Override
+//    protected boolean shouldNotFilter(HttpServletRequest request) {
+//
+//        String path = request.getServletPath();
+//
+//        return
+//                path.startsWith("/api/registration") ||
+//                        path.startsWith("/api/auth") ||
+//                        request.getMethod().equals("GET") && path.startsWith("/api/posts") ||
+//                        request.getMethod().equals("GET") && path.startsWith("/api/categories") ||
+//                        request.getMethod().equals("GET") && path.startsWith("/api/tags");
+//    }
 
 
 }

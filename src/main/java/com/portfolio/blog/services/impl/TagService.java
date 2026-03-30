@@ -8,7 +8,7 @@ import com.portfolio.blog.exceptions.ConflictException;
 import com.portfolio.blog.mappers.TagMapper;
 import com.portfolio.blog.repositories.TagRepository;
 import com.portfolio.blog.services.TagServiceInterface;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

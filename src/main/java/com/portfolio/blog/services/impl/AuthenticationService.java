@@ -4,13 +4,17 @@ import com.portfolio.blog.domain.dto.authentication.LoginRequest;
 import com.portfolio.blog.domain.dto.authentication.LoginResponse;
 import com.portfolio.blog.domain.dto.authentication.LogoutResponse;
 import com.portfolio.blog.domain.dto.authentication.RefreshResponse;
+import com.portfolio.blog.domain.entities.UserEntity;
 import com.portfolio.blog.exceptions.UnauthenticatedException;
+import com.portfolio.blog.repositories.UserRepository;
 import com.portfolio.blog.services.AuthenticationServiceInterface;
 import com.portfolio.blog.services.CookieServiceInterface;
 import com.portfolio.blog.services.JwtServiceInterface;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.transaction.Transactional;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,6 +36,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
     private final UserDetailsService userDetailsService;
     private final JwtServiceInterface jwtService;
     private final CookieServiceInterface cookieService;
+    private final UserRepository userRepository;
 
 
     @Override
@@ -77,7 +82,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
             String refreshToken
     ) {
 
-        jwtService.validateRefreshToken(refreshToken); //AuthenticationException is thrown if token isn't valid;
+        jwtService.validateRefreshToken(refreshToken); //UnauthenticatedException is thrown if token isn't valid;
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(
                 jwtService.getClaims(refreshToken).getSubject()
@@ -109,5 +114,17 @@ public class AuthenticationService implements AuthenticationServiceInterface {
         log.info("User [ {} ] successfully logged out", jwtService.getClaims(refreshToken).getSubject());
 
         return new LogoutResponse("Logged out");
+    }
+
+    @Override
+    public UserEntity getUserFromSecurityContextHolder() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        UserEntity user = auth instanceof AnonymousAuthenticationToken ? null :
+                userRepository.findByEmail(auth.getName())
+                        .orElseThrow(() -> new UnauthenticatedException("User is not found")
+                );
+        return user;
     }
 }

@@ -90,12 +90,12 @@ public class ErrorController {
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .collect(Collectors.joining(", "));
 
-        log.warn("Validation failed at {} : {} , ", request.getRequestURI(), message);
+        log.warn("Validation failed at {} : {} , ", request.getRequestURI(), ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 new ApiErrorResponse(
                         HttpStatus.BAD_REQUEST,
-                        ex.getMessage(),
+                        message,
                         request.getRequestURI())
         );
     }
@@ -140,7 +140,7 @@ public class ErrorController {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
 
-        log.error("Unexpected exception occurred at: {}", request.getRequestURI());
+        log.error("Unexpected exception occurred at: {} : {}", request.getRequestURI(), ex.getMessage());
 
         ApiErrorResponse response = new ApiErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,

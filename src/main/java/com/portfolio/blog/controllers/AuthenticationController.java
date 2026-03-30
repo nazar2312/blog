@@ -7,6 +7,7 @@ import com.portfolio.blog.domain.dto.authentication.RefreshResponse;
 import com.portfolio.blog.services.AuthenticationServiceInterface;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class AuthenticationController {
 
     @PostMapping(path = "/login")
     public ResponseEntity<LoginResponse> login(
-            @RequestBody LoginRequest request,
+            @RequestBody @Valid LoginRequest request,
             HttpServletResponse servletResponse
     ) {
         LoginResponse loginResponse = authenticationService.login(request, servletResponse);
