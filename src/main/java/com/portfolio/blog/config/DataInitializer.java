@@ -41,7 +41,5 @@ public class DataInitializer implements ApplicationRunner {
 
             userRepo.save(user);
         }
-
-
     }
 }

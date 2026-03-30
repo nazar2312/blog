@@ -5,13 +5,11 @@ import com.portfolio.blog.services.JwtServiceInterface;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.UnavailableException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -34,11 +32,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
 
             String token = jwtService.extractToken(request);
-            System.out.println("extracted");
             jwtService.isBlacklisted(token);
-            System.out.println("not blacklisted");
             UserDetails userDetails = jwtService.validateToken(token);
-            System.out.println("valid");
 
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                     userDetails,

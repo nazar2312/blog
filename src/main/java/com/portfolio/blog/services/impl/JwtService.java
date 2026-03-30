@@ -6,11 +6,9 @@ import com.portfolio.blog.repositories.RefreshTokenRepository;
 import com.portfolio.blog.repositories.UserRepository;
 import com.portfolio.blog.services.JwtServiceInterface;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -64,20 +62,18 @@ public class JwtService implements JwtServiceInterface {
 
         refreshTokenRepository.save(refreshTokenEntity);
 
-        log.info("New refresh token was generated for user {}", details.getUsername());
-
         return token;
     }
 
     @Override
     public String generateToken(UserDetails details) {
 
-        log.info("New access token was generated for user {}", details.getUsername());
-
         return Jwts.builder()
                 .setSubject(details.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiry))
+                .claim("role", details.getAuthorities().stream().findFirst()
+                        .map(a -> a.getAuthority()).orElse("USER")) //Set USER if authority is not assigned
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -101,7 +97,6 @@ public class JwtService implements JwtServiceInterface {
 
     @Override
     public UserDetails validateToken(String token) {
-        System.out.println("valideation");
         String username = getClaims(token).getSubject(); //Return claims if token is valid
 
         return userDetailsService.loadUserByUsername(username);
