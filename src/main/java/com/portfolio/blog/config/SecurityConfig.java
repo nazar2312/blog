@@ -1,9 +1,7 @@
 package com.portfolio.blog.config;
 
-import com.portfolio.blog.exceptions.UnauthenticatedException;
 import com.portfolio.blog.security.JwtAuthenticationFilter;
 import com.portfolio.blog.services.JwtServiceInterface;
-import io.jsonwebtoken.JwtException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -27,32 +25,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            JwtAuthenticationFilter jwtAuthenticationFilter) throws JwtException {
+            JwtAuthenticationFilter jwtAuthenticationFilter) {
 
-        try {
-            http
-                    .authorizeHttpRequests(auth -> auth
-                            .requestMatchers(HttpMethod.POST, "/api/registration/**").permitAll()
-                            .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/tags/**").permitAll()
-                            .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-                            .anyRequest().authenticated()
-                    )
-                    .csrf(csrf -> csrf.disable())
-                    .sessionManagement(session ->
-                            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                    ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-            return http.build();
-        } catch (UnauthenticatedException e) {
-            throw e;
-
-        }
+        http
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/api/registration/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/tags/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        return http.build();
     }
 
     @Bean
-    public JwtAuthenticationFilter authenticationFilter(JwtServiceInterface jwtService){
+    public JwtAuthenticationFilter authenticationFilter(JwtServiceInterface jwtService) {
         return new JwtAuthenticationFilter(jwtService);
     }
 

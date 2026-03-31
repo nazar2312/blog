@@ -10,75 +10,12 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.stream.Collectors;
 
-@RestController
 @ControllerAdvice
 @Slf4j
 public class ErrorController {
-
-//    @ExceptionHandler(AccessDeniedException.class)
-//    public ResponseEntity<ApiErrorResponse> handleAccessDenied(AccessDeniedException ex) {
-//
-//        ApiErrorResponse response = ApiErrorResponse.builder()
-//                .status(HttpStatus.UNAUTHORIZED.value())
-//                .message(ex.getMessage())
-//                .build();
-//        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
-//    }
-//
-//    @ExceptionHandler(AuthenticationException.class)
-//    public ResponseEntity<ApiErrorResponse> handleJwtException(AuthenticationException ex) {
-//        ApiErrorResponse response = ApiErrorResponse.builder()
-//                .status(HttpStatus.FORBIDDEN.value())
-//                .message(ex.getMessage())
-//                .build();
-//        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-//    }
-//
-//    @ExceptionHandler(JwtException.class)
-//    public ResponseEntity<ApiErrorResponse> handleJwtException(JwtException ex) {
-//
-//        ApiErrorResponse response = ApiErrorResponse.builder()
-//                .status(HttpStatus.FORBIDDEN.value())
-//                .message(ex.getMessage())
-//                .build();
-//        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-//    }
-//
-//    @ExceptionHandler(IllegalArgumentException.class)
-//    public ResponseEntity<ApiErrorResponse> handleIllegalArg(IllegalArgumentException ex) {
-//
-//        ApiErrorResponse response = ApiErrorResponse.builder()
-//                .status(HttpStatus.BAD_REQUEST.value())
-//                .message(ex.getMessage())
-//                .build();
-//        return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
-//    }
-//
-//    @ExceptionHandler(BadCredentialsException.class)
-//    public ResponseEntity<ApiErrorResponse> handleBadCredentials(BadCredentialsException ex) {
-//
-//        ApiErrorResponse response = ApiErrorResponse.builder()
-//                .status(HttpStatus.FORBIDDEN.value())
-//                .message(ex.getMessage())
-//                .build();
-//        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-//    }
-//
-//    @ExceptionHandler(EntityNotFoundException.class)
-//    public ResponseEntity<ApiErrorResponse> handleEntityNotFound(EntityNotFoundException ex) {
-//
-//        ApiErrorResponse response = ApiErrorResponse.builder()
-//                .status(HttpStatus.NOT_FOUND.value())
-//                .message(ex.getMessage())
-//                .build();
-//        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-//    }
-//
-
 
     // Bean validation failure.
     @ExceptionHandler(MethodArgumentNotValidException.class)

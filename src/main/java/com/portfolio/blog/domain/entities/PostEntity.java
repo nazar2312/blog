@@ -53,6 +53,7 @@ public class PostEntity {
     private UserEntity author;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private StatusEntity status;
 
 

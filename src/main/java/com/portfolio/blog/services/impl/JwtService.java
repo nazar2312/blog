@@ -6,6 +6,7 @@ import com.portfolio.blog.repositories.RefreshTokenRepository;
 import com.portfolio.blog.repositories.UserRepository;
 import com.portfolio.blog.services.JwtServiceInterface;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -55,7 +56,7 @@ public class JwtService implements JwtServiceInterface {
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
 
-        RefreshToken refreshToken= RefreshToken.builder()
+        RefreshToken refreshToken = RefreshToken.builder()
                 .token(token)
                 .user(userRepository.findByEmail(details.getUsername()).get())
                 .expiringAt(LocalDateTime.now().plusSeconds(refreshExpiry/1000))
@@ -85,7 +86,7 @@ public class JwtService implements JwtServiceInterface {
         var refresh = refreshTokenRepository.findByToken(token);
 
         if(refresh.isEmpty() || LocalDateTime.now().isAfter(refresh.get().getExpiringAt()) ) {
-            throw new UnauthenticatedException("Authentication failed");
+            throw new UnauthenticatedException("Refresh token is not valid / expired");
         }
     }
 
@@ -98,9 +99,13 @@ public class JwtService implements JwtServiceInterface {
 
     @Override
     public UserDetails validateToken(String token) {
-        String username = getClaims(token).getSubject(); //Return claims if token is valid
 
-        return userDetailsService.loadUserByUsername(username);
+        try {
+            String username = getClaims(token).getSubject(); //Return claims if token is valid
+            return userDetailsService.loadUserByUsername(username);
+        } catch (JwtException e) {
+            throw new UnauthenticatedException("Access token is not valid / expired");
+        }
     }
 
     @Override
@@ -119,12 +124,13 @@ public class JwtService implements JwtServiceInterface {
     @Override
     public void isBlacklisted(String jti) {
 
-        if (redisTemplate.hasKey("blacklist:" + jti)) throw new UnauthenticatedException("Authentication failed");
-
+        if (redisTemplate.hasKey("blacklist:" + jti))
+            throw new UnauthenticatedException("Token is in the blacklist");
     }
 
     @Override
     public void addToBlacklist(String jti) {
+
 
         redisTemplate.opsForValue().set(
                 "blacklist:" + jti,
