@@ -5,7 +5,6 @@ import com.portfolio.blog.domain.dto.post.PostResponse;
 import com.portfolio.blog.domain.entities.PostEntity;
 import com.portfolio.blog.domain.entities.StatusEntity;
 import com.portfolio.blog.domain.entities.UserEntity;
-import com.portfolio.blog.exceptions.ForbiddenException;
 import com.portfolio.blog.mappers.PostMapper;
 import com.portfolio.blog.repositories.PostRepository;
 import com.portfolio.blog.services.*;
@@ -29,7 +28,6 @@ public class PostService implements PostServiceInterface {
     private final CategoryServiceInterface categoryService;
     private final TagServiceInterface tagService;
     private final AuthorizationServiceInterface authorizationService;
-    private final AuthenticationServiceInterface authenticationService;
     private final UserServiceInterface userService;
 
     @Override
@@ -53,10 +51,15 @@ public class PostService implements PostServiceInterface {
         PostEntity post = repository.findById(id)
                 .orElseThrow( () -> new ResourceNotFoundException("Post is not found with id [ " + id + " ]" ));
 
+        if(currentUser == null && post.getStatus().equals(StatusEntity.DRAFT)) {
+
+            throw new ResourceNotFoundException("Post is unavailable/nonexisting");
+        }
+
         if( post.getStatus().equals(StatusEntity.PUBLISHED) || post.getAuthor().getId().equals(currentUser.getId())) {
             return mapper.entityToResponse(post);
         } else {
-            throw new ForbiddenException("No.");
+            throw new ResourceNotFoundException("Post is unavailable/nonexisting");
         }
     }
 

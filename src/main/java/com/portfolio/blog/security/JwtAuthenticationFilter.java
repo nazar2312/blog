@@ -44,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (UnauthenticatedException e) {
             //unauthorized
-            log.warn("Authentication unsuccessful - " + e.getMessage());
+            log.warn("Authentication unsuccessful - {} ", e.getMessage());
         }
 
         filterChain.doFilter(request, response);

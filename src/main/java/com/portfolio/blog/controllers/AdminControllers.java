@@ -3,7 +3,7 @@ package com.portfolio.blog.controllers;
 import com.portfolio.blog.domain.dto.post.PostResponse;
 import com.portfolio.blog.domain.dto.user.User;
 import com.portfolio.blog.services.AdministrationServiceInterface;
-import com.portfolio.blog.services.impl.PostService;
+import com.portfolio.blog.services.PostServiceInterface;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,9 +16,9 @@ import java.util.UUID;
 public class AdminControllers {
 
     private final AdministrationServiceInterface administrationServices;
-    private final PostService postService;
+    private final PostServiceInterface postService;
 
-    @PostMapping(path = "/delete_post/{uuid}")
+    @DeleteMapping(path = "/delete_post/{uuid}")
     public ResponseEntity<PostResponse> deletePost(@PathVariable UUID uuid) {
 
         postService.delete(uuid);
