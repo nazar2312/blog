@@ -8,9 +8,11 @@ import java.util.UUID;
 
 public interface PostServiceInterface {
 
-    List<PostResponse> findAll();
+    List<PostResponse> findAll(int page, int size);
     PostResponse findOne(UUID id);
     PostResponse create(PostRequest request);
     PostResponse update(UUID uuid, PostRequest request);
     void delete(UUID uuid);
+
+    List<PostResponse> findByAuthor(UUID author_id);
 }

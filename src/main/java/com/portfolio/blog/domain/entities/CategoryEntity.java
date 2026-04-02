@@ -2,8 +2,6 @@ package com.portfolio.blog.domain.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -22,6 +20,6 @@ public class CategoryEntity {
     @Column(nullable = false, updatable = false, unique = true)
     private String name;
 
-    @OneToMany(mappedBy = "category")
-    private List<PostEntity> posts;
+//    @OneToMany(mappedBy = "category")
+//    private List<PostEntity> posts;
 }

@@ -10,6 +10,8 @@ import com.portfolio.blog.repositories.PostRepository;
 import com.portfolio.blog.services.*;
 import com.portfolio.blog.exceptions.ResourceNotFoundException;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+
 public class PostService implements PostServiceInterface {
 
     private final PostRepository repository;
@@ -30,17 +33,60 @@ public class PostService implements PostServiceInterface {
     private final AuthorizationServiceInterface authorizationService;
     private final UserServiceInterface userService;
 
+
     @Override
     @Transactional
-    public List<PostResponse> findAll() {
+    public List<PostResponse> findAll(int pageNumber, int size) {
 
+        /*
+            Authenticated user can see all published and his drafts.
+            If user is not authenticated (anonymous), return only published posts;
+        */
+
+        Pageable page = PageRequest.of(pageNumber, size);
         UserEntity currentUser = userService.getUserFromSecurityContextHolder();
 
-        return repository.findAll().stream()
-                .filter(post -> post.getStatus().equals(StatusEntity.PUBLISHED) //Show all published posts
-                        || (currentUser != null && post.getAuthor().getId().equals(currentUser.getId())))  // Show draft IF user is authenticated
-                .map(mapper::entityToResponse).toList();
+        if (currentUser == null) {
+
+            var paginated = repository.findByStatus(StatusEntity.PUBLISHED, page);
+
+            if (!paginated.isEmpty()) {
+                var uuids = paginated.stream()
+                        .map(p -> p.getId())
+                        .toList();
+                return repository.findByIdIn(uuids).stream()
+                        .map(mapper::entityToResponse)
+                        .toList();
+
+            } else return List.of(); //Return empty list if no elements found;
+
+        } else { //If user is authenticated
+
+            var paginated = repository.findByStatusOrAuthor(StatusEntity.PUBLISHED, currentUser, page);
+
+            if(!paginated.isEmpty()) {
+
+                var uuids = paginated.stream()
+                        .map(p -> p.getId())
+                        .toList();
+                return repository.findByIdIn(uuids).stream()
+                        .map(mapper::entityToResponse)
+                        .toList();
+
+            } else return List.of();
+        }
+
+
+
+
+//        if (currentUser == null) return repository.findByStatus(StatusEntity.PUBLISHED, page).stream()
+//                .map(mapper::entityToResponse)
+//                .toList();
+//        else return repository.findByStatusOrAuthor(StatusEntity.PUBLISHED, currentUser, page).stream()
+//                .map(mapper::entityToResponse)
+//                .toList();
     }
+
 
     @Override
     @Transactional
@@ -49,14 +95,13 @@ public class PostService implements PostServiceInterface {
         UserEntity currentUser = userService.getUserFromSecurityContextHolder();
 
         PostEntity post = repository.findById(id)
-                .orElseThrow( () -> new ResourceNotFoundException("Post is not found with id [ " + id + " ]" ));
+                .orElseThrow(() -> new ResourceNotFoundException("Post is not found with id [ " + id + " ]"));
 
-        if(currentUser == null && post.getStatus().equals(StatusEntity.DRAFT)) {
-
+        if (currentUser == null && post.getStatus().equals(StatusEntity.DRAFT)) {
             throw new ResourceNotFoundException("Post is unavailable/nonexisting");
         }
 
-        if( post.getStatus().equals(StatusEntity.PUBLISHED) || post.getAuthor().getId().equals(currentUser.getId())) {
+        if (post.getStatus().equals(StatusEntity.PUBLISHED) || post.getAuthor().getId().equals(currentUser.getId())) {
             return mapper.entityToResponse(post);
         } else {
             throw new ResourceNotFoundException("Post is unavailable/nonexisting");
@@ -109,6 +154,16 @@ public class PostService implements PostServiceInterface {
         log.info("User [ {} ] has deleted post: {}", currentUser.getEmail(), postToDelete.getTitle());
 
     }
+
+    @Override
+    public List<PostResponse> findByAuthor(UUID author_id) {
+        PageRequest pageSize = PageRequest.ofSize(2);
+        return repository.findByStatusAndAuthorId(StatusEntity.PUBLISHED, author_id, pageSize).stream()
+                .map(mapper::entityToResponse)
+                .toList();
+    }
+
+
 }
 
 

@@ -12,21 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-/*
-   GET/posts/ - Get all posts without specifying user
-   GET/{user_id}/posts - posts of specific user
-   GET/{post_id}/ - post with specific ID
-   GET/{category_id}/posts - posts of specific category
-   GET/{user_id}/{category_id}/posts - posts of specific user and specific category
-   GET/{tag_id}/posts - posts with specific tag
-
-   POST/posts - create post
-
-   PATCH/{post_id} - update post
-
-   DELETE/{post_id} - delete post
-
- */
 @RestController
 @RequestMapping(path = "api/posts")
 @RequiredArgsConstructor
@@ -35,8 +20,11 @@ public class PostController {
     private final PostServiceInterface service;
 
     @GetMapping
-    public ResponseEntity<List<PostResponse>> findAll() {
-        return ResponseEntity.ok().body(service.findAll());
+    public ResponseEntity<List<PostResponse>> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok().body(service.findAll(page, size));
     }
 
     @GetMapping(path = "/{post_id}")
@@ -44,9 +32,13 @@ public class PostController {
         return ResponseEntity.ok(service.findOne(post_id));
     }
 
+    @GetMapping(path = "/{author_id}")
+    public ResponseEntity<List<PostResponse>> findByAuthor(@PathVariable UUID author_id) {
+        return ResponseEntity.ok().body(service.findByAuthor(author_id));
+    }
+
     @PostMapping
     public ResponseEntity<PostResponse> create(@Valid @RequestBody PostRequest request) {
-
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(service.create(request));
     }
