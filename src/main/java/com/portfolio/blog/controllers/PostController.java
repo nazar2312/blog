@@ -32,7 +32,7 @@ public class PostController {
         return ResponseEntity.ok(service.findOne(post_id));
     }
 
-    @GetMapping(path = "/{author_id}")
+    @GetMapping(path = "/author/{author_id}")
     public ResponseEntity<List<PostResponse>> findByAuthor(@PathVariable UUID author_id) {
         return ResponseEntity.ok().body(service.findByAuthor(author_id));
     }

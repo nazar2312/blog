@@ -75,16 +75,6 @@ public class PostService implements PostServiceInterface {
 
             } else return List.of();
         }
-
-
-
-
-//        if (currentUser == null) return repository.findByStatus(StatusEntity.PUBLISHED, page).stream()
-//                .map(mapper::entityToResponse)
-//                .toList();
-//        else return repository.findByStatusOrAuthor(StatusEntity.PUBLISHED, currentUser, page).stream()
-//                .map(mapper::entityToResponse)
-//                .toList();
     }
 
 
@@ -129,7 +119,7 @@ public class PostService implements PostServiceInterface {
 
         UserEntity currentUser = userService.getUserFromSecurityContextHolder();
 
-        authorizationService.authorizeUpdating(postToUpdate, currentUser); //Exception is thrown if not authorized;
+        authorizationService.authorizeUpdatingOrDeleting(postToUpdate, currentUser); //Exception is thrown if not authorized;
 
         postToUpdate.setTitle(request.getTitle());
         postToUpdate.setContent(request.getContent());
@@ -148,7 +138,7 @@ public class PostService implements PostServiceInterface {
 
         UserEntity currentUser = userService.getUserFromSecurityContextHolder();
 
-        authorizationService.authorizeDeleting(postToDelete, currentUser); //Exception is thrown if unauthorized;
+        authorizationService.authorizeUpdatingOrDeleting(postToDelete, currentUser); //Exception is thrown if unauthorized;
         repository.deleteById(uuid);
 
         log.info("User [ {} ] has deleted post: {}", currentUser.getEmail(), postToDelete.getTitle());

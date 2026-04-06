@@ -21,41 +21,35 @@ public class AuthorizationService implements AuthorizationServiceInterface {
     //  In case if Role.USER, user is only allowed to delete/update his own posts.
 
     @Override
-    public void authorizeDeleting(PostEntity postToDelete, UserEntity currentUser) {
+    public void authorizeUpdatingOrDeleting(PostEntity postToUpdate, UserEntity currentUser) {
 
-        if(currentUser.getRole().equals(Role.ADMIN)
-                || currentUser.getId().equals(postToDelete.getAuthor().getId())
-                && currentUser.getRole().equals(Role.USER)
-        ){
-            return;
-          // Authorized
-        } else {
-            log.warn("User [ {} ] attempted to delete post of the user [ {} ]", currentUser.getEmail(), postToDelete.getAuthor().getEmail());
-            throw new ForbiddenException("Only deleting of own posts is permitted");
-        }
-
-    }
-
-    @Override
-    public void authorizeUpdating(PostEntity postToUpdate, UserEntity currentUser) {
-
-        if(currentUser.getRole().equals(Role.ADMIN)
-                || currentUser.getId().equals(postToUpdate.getAuthor().getId())
-                && currentUser.getRole().equals(Role.USER)
-        ){
-            return;
-            // Authorized
-        } else {
+        if (currentUser == null
+                ||!currentUser.getId().equals(postToUpdate.getAuthor().getId()) && !currentUser.getRole().equals(Role.ADMIN)
+        ) {
             log.warn("User [ {} ] attempted to update post of the user [ {} ]", currentUser.getEmail(), postToUpdate.getAuthor().getEmail());
             throw new ForbiddenException("Only updating of own posts is permitted");
         }
+
     }
 
     @Override
-    public void authorizeCategoryOrTagDeleting(){
-        if(!userService.getUserFromSecurityContextHolder().getRole().equals(Role.ADMIN)) {
-            throw new ForbiddenException("Action is not permitted");
-        }
+    public void authorizeCategoryOrTagDeleting() {
+
+        UserEntity currentUser = userService.getUserFromSecurityContextHolder();
+        if (currentUser == null
+                || !currentUser.getRole().equals(Role.ADMIN)) throw new ForbiddenException("Action is not permitted");
+
     }
 
 }
+
+
+
+
+
+
+
+
+
+
+

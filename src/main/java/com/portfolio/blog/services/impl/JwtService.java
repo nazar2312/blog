@@ -85,7 +85,11 @@ public class JwtService implements JwtServiceInterface {
 
         var refresh = refreshTokenRepository.findByToken(token);
 
-        if(refresh.isEmpty() || LocalDateTime.now().isAfter(refresh.get().getExpiringAt()) ) {
+        if(refresh.isEmpty()
+                || LocalDateTime.now().isAfter(refresh.get().getExpiringAt())
+                || refresh.get().getUser() == null
+                || !refresh.get().getUser().isNonLocked()
+        ) {
             throw new UnauthenticatedException("Refresh token is not valid / expired");
         }
     }
@@ -102,7 +106,11 @@ public class JwtService implements JwtServiceInterface {
 
         try {
             String username = getClaims(token).getSubject(); //Return claims if token is valid
-            return userDetailsService.loadUserByUsername(username);
+            var user = userDetailsService.loadUserByUsername(username);
+
+            if(user.isAccountNonExpired() && user.isAccountNonLocked()) return user;
+            else throw new JwtException("");
+
         } catch (JwtException e) {
             throw new UnauthenticatedException("Access token is not valid / expired");
         }
@@ -151,7 +159,12 @@ public class JwtService implements JwtServiceInterface {
 
     private long calculateTTL(String accessToken) {
         // Calculating TTL (time to live) by subtracting current time from token expiration;
-        return getClaims(accessToken).getExpiration().getTime() - System.currentTimeMillis();
+        long ttl = getClaims(accessToken).getExpiration().getTime() - System.currentTimeMillis();
+        if(ttl < 0 ) {
+            addToBlacklist(accessToken);
+            throw new UnauthenticatedException("Token is expired");
+        }
+        return ttl;
     }
 
     private Key getSigningKey() {

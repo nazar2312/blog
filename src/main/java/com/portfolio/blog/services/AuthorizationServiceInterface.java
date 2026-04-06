@@ -6,9 +6,8 @@ import com.portfolio.blog.domain.entities.UserEntity;
 
 public interface AuthorizationServiceInterface {
 
-    void authorizeDeleting(PostEntity postToDelete, UserEntity currentUser);
-
-    void authorizeUpdating(PostEntity postToUpdate, UserEntity currentUser);
+    void authorizeUpdatingOrDeleting(PostEntity postToUpdate, UserEntity currentUser);
 
     void authorizeCategoryOrTagDeleting();
 }
+
