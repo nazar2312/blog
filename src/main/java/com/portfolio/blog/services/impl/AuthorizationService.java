@@ -26,7 +26,7 @@ public class AuthorizationService implements AuthorizationServiceInterface {
         if (currentUser == null
                 ||!currentUser.getId().equals(postToUpdate.getAuthor().getId()) && !currentUser.getRole().equals(Role.ADMIN)
         ) {
-            log.warn("User [ {} ] attempted to update post of the user [ {} ]", currentUser.getEmail(), postToUpdate.getAuthor().getEmail());
+            log.warn("User attempted to update post of the user [ {} ]", postToUpdate.getAuthor().getEmail());
             throw new ForbiddenException("Only updating of own posts is permitted");
         }
 

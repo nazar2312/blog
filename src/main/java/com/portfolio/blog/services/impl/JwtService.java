@@ -161,7 +161,6 @@ public class JwtService implements JwtServiceInterface {
         // Calculating TTL (time to live) by subtracting current time from token expiration;
         long ttl = getClaims(accessToken).getExpiration().getTime() - System.currentTimeMillis();
         if(ttl < 0 ) {
-            addToBlacklist(accessToken);
             throw new UnauthenticatedException("Token is expired");
         }
         return ttl;

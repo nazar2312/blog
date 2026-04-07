@@ -5,6 +5,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Service;
 
+
 @Service
 public class CookieService implements CookieServiceInterface {
 
@@ -16,7 +17,7 @@ public class CookieService implements CookieServiceInterface {
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/api/auth");
-        cookie.setMaxAge(30 * 24 * 60 * 60);
+        cookie.setMaxAge(10 * 24 * 60 * 60);
 
         response.addCookie(cookie);
     }

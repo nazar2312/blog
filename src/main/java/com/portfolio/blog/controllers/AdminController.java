@@ -13,7 +13,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/api/admin")
-public class AdminControllers {
+public class AdminController {
 
     private final AdministrationServiceInterface administrationServices;
     private final PostServiceInterface postService;

@@ -7,6 +7,7 @@ import com.portfolio.blog.domain.entities.TagEntity;
 import com.portfolio.blog.exceptions.ConflictException;
 import com.portfolio.blog.mappers.TagMapper;
 import com.portfolio.blog.repositories.TagRepository;
+import com.portfolio.blog.services.AuthorizationServiceInterface;
 import com.portfolio.blog.services.TagServiceInterface;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ public class TagService implements TagServiceInterface {
 
     private final TagRepository repository;
     private final TagMapper mapper;
-    private final AuthorizationService authorizationService;
+    private final AuthorizationServiceInterface authorizationService;
 
     @Override
     public TagResponse create(TagRequest request) {

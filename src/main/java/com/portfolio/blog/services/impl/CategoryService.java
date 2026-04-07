@@ -7,6 +7,7 @@ import com.portfolio.blog.domain.entities.CategoryEntity;
 import com.portfolio.blog.exceptions.ResourceNotFoundException;
 import com.portfolio.blog.mappers.CategoryMapper;
 import com.portfolio.blog.repositories.CategoryRepository;
+import com.portfolio.blog.services.AuthorizationServiceInterface;
 import com.portfolio.blog.services.CategoryServiceInterface;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class CategoryService implements CategoryServiceInterface {
 
     private final CategoryRepository repository;
     private final CategoryMapper mapper;
-    private final AuthorizationService authorizationService;
+    private final AuthorizationServiceInterface authorizationService;
 
     @Override
     public List<CategoryResponse> findAllCategories() {
