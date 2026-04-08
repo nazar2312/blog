@@ -2,6 +2,7 @@ package com.portfolio.blog.controllers;
 
 import com.portfolio.blog.domain.dto.post.PostRequest;
 import com.portfolio.blog.domain.dto.post.PostResponse;
+import com.portfolio.blog.domain.entities.StatusEntity;
 import com.portfolio.blog.services.PostServiceInterface;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,21 +21,19 @@ public class PostController {
     private final PostServiceInterface service;
 
     @GetMapping
-    public ResponseEntity<List<PostResponse>> findAll(
+    public ResponseEntity<List<PostResponse>> find(
+            @RequestParam(required = false) UUID authorId,
+            @RequestParam(required = false) StatusEntity status,
+            @RequestParam(required = false) String categoryName,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok().body(service.findAll(page, size));
+        return ResponseEntity.ok().body(service.findSpecific(authorId, status, categoryName, page, size));
     }
 
     @GetMapping(path = "/{post_id}")
     public ResponseEntity<PostResponse> findOne(@PathVariable UUID post_id) {
         return ResponseEntity.ok(service.findOne(post_id));
-    }
-
-    @GetMapping(path = "/author/{author_id}")
-    public ResponseEntity<List<PostResponse>> findByAuthor(@PathVariable UUID author_id) {
-        return ResponseEntity.ok().body(service.findByAuthor(author_id));
     }
 
     @PostMapping

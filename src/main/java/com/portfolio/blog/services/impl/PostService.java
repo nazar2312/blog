@@ -3,6 +3,7 @@ package com.portfolio.blog.services.impl;
 import com.portfolio.blog.domain.dto.post.PostRequest;
 import com.portfolio.blog.domain.dto.post.PostResponse;
 import com.portfolio.blog.domain.entities.PostEntity;
+import com.portfolio.blog.domain.entities.Role;
 import com.portfolio.blog.domain.entities.StatusEntity;
 import com.portfolio.blog.domain.entities.UserEntity;
 import com.portfolio.blog.mappers.PostMapper;
@@ -11,7 +12,7 @@ import com.portfolio.blog.services.*;
 import com.portfolio.blog.exceptions.ResourceNotFoundException;
 
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,51 +34,6 @@ public class PostService implements PostServiceInterface {
     private final AuthorizationServiceInterface authorizationService;
     private final UserServiceInterface userService;
 
-
-    @Override
-    @Transactional
-    public List<PostResponse> findAll(int pageNumber, int size) {
-
-        /*
-            Authenticated user can see all published and his drafts.
-            If user is not authenticated (anonymous), return only published posts;
-        */
-
-        Pageable page = PageRequest.of(pageNumber, size);
-        UserEntity currentUser = userService.getUserFromSecurityContextHolder();
-
-        if (currentUser == null) {
-
-            var paginated = repository.findByStatus(StatusEntity.PUBLISHED, page);
-
-            if (!paginated.isEmpty()) {
-                var uuids = paginated.stream()
-                        .map(p -> p.getId())
-                        .toList();
-                return repository.findByIdIn(uuids).stream()
-                        .map(mapper::entityToResponse)
-                        .toList();
-
-            } else return List.of(); //Return empty list if no elements found;
-
-        } else { //If user is authenticated
-
-            var paginated = repository.findByStatusOrAuthor(StatusEntity.PUBLISHED, currentUser, page);
-
-            if(!paginated.isEmpty()) {
-
-                var uuids = paginated.stream()
-                        .map(p -> p.getId())
-                        .toList();
-                return repository.findByIdIn(uuids).stream()
-                        .map(mapper::entityToResponse)
-                        .toList();
-
-            } else return List.of();
-        }
-    }
-
-
     @Override
     @Transactional
     public PostResponse findOne(UUID id) {
@@ -96,6 +52,59 @@ public class PostService implements PostServiceInterface {
         } else {
             throw new ResourceNotFoundException("Post is unavailable/nonexisting");
         }
+    }
+
+    @Override
+    @Transactional
+    public List<PostResponse> findSpecific(UUID authorId,
+                                           StatusEntity status,
+                                           String categoryName,
+                                           int pageNumber,
+                                           int size
+    ) {
+        // 3 cases: ADMIN, USER, null(anonym)
+        UserEntity currentUser = userService.getUserFromSecurityContextHolder();
+        PageRequest page = PageRequest.of(pageNumber, size);
+        Specification<PostEntity> spec = Specification.allOf();
+
+        if (authorId != null)
+            spec = spec.and(((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("author").get("id"), authorId)));
+        if (status != null)
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("status"), status));
+        if (categoryName != null)
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("category").get("name"), categoryName));
+
+        /*
+            Anonymous users can only see published posts,
+            USER can see PUBLISHED and his own DRAFT,
+            ADMIN has no restrictions.
+        */
+        if (currentUser == null) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("status"), StatusEntity.PUBLISHED));
+
+        } else if (currentUser.getRole().equals(Role.USER)) {
+
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.or(
+                            criteriaBuilder.equal(root.get("status"), StatusEntity.PUBLISHED),
+                            criteriaBuilder.equal(root.get("author"), currentUser)
+                    )
+            );
+        }
+
+        // Pulling all SPECIFIED posts, and store their uuids
+        var uuids = repository.findAll(spec, page).stream()
+                .map(PostEntity::getId)
+                .toList();
+
+        // Finding specified posts and fetching related data;
+        return repository.findByIdIn(uuids).stream()
+                .map(mapper::entityToResponse)
+                .toList();
     }
 
     @Override
@@ -144,15 +153,6 @@ public class PostService implements PostServiceInterface {
         log.info("User [ {} ] has deleted post: {}", currentUser.getEmail(), postToDelete.getTitle());
 
     }
-
-    @Override
-    public List<PostResponse> findByAuthor(UUID author_id) {
-        PageRequest pageSize = PageRequest.ofSize(2);
-        return repository.findByStatusAndAuthorId(StatusEntity.PUBLISHED, author_id, pageSize).stream()
-                .map(mapper::entityToResponse)
-                .toList();
-    }
-
 
 }
 
