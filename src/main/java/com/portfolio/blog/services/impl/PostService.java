@@ -35,23 +35,33 @@ public class PostService implements PostServiceInterface {
     private final UserServiceInterface userService;
 
     @Override
-    @Transactional
-    public PostResponse findOne(UUID id) {
+    public PostResponse findOne(UUID postToFind) {
 
+        // Anonym (null) only can see with status PUBLISHED; USER can see PUBLISHED and his DRAFT; ADMIN - no restrictions;
         UserEntity currentUser = userService.getUserFromSecurityContextHolder();
+        Specification<PostEntity> spec = Specification.allOf();
 
-        PostEntity post = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Post is not found with id [ " + id + " ]"));
+        spec = spec.and((root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("id"), postToFind));
 
-        if (currentUser == null && post.getStatus().equals(StatusEntity.DRAFT)) {
-            throw new ResourceNotFoundException("Post is unavailable/nonexisting");
+        if (currentUser == null) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("status"), StatusEntity.PUBLISHED));
+        } else if (currentUser.getRole() == Role.USER) {
+
+            spec = spec.and((root, query, criteriaBuilder) ->
+
+                    // Either post is published or it's users DRAFT
+                    criteriaBuilder.or(
+                            criteriaBuilder.equal(root.get("status"), StatusEntity.PUBLISHED),
+                            criteriaBuilder.equal(root.get("author").get("id"), currentUser.getId())
+                    )
+            );
         }
-
-        if (post.getStatus().equals(StatusEntity.PUBLISHED) || post.getAuthor().getId().equals(currentUser.getId())) {
-            return mapper.entityToResponse(post);
-        } else {
-            throw new ResourceNotFoundException("Post is unavailable/nonexisting");
-        }
+        return mapper.entityToResponse(
+                repository.findOne(spec)
+                        .orElseThrow(() -> new ResourceNotFoundException("Post is not found"))
+        );
     }
 
     @Override

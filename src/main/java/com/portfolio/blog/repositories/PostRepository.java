@@ -1,6 +1,7 @@
 package com.portfolio.blog.repositories;
 
 import com.portfolio.blog.domain.entities.*;
+
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -15,4 +16,5 @@ public interface PostRepository extends JpaRepository<PostEntity, UUID>, JpaSpec
         // Method that fetches
     @EntityGraph(attributePaths = {"author", "category", "tags"})
     List<PostEntity> findByIdIn(List<UUID> uuids);
+
 }

@@ -44,9 +44,9 @@ public class ErrorController {
             HttpServletRequest request) {
 
         if (ex.getStatus().is5xxServerError()) {
-            log.error("Server error at {} : {} ", request.getRequestURI(), ex.getMessage());
+            log.warn("Server error at {} : {} ", request.getRequestURI(), ex.getMessage());
         } else {
-            log.error("Client error at {} : {} ", request.getRequestURI(), ex.getMessage());
+            log.warn("Client error at {} : {} ", request.getRequestURI(), ex.getMessage());
         }
         return ResponseEntity.status(ex.getStatus())
                 .body(new ApiErrorResponse(
@@ -62,7 +62,7 @@ public class ErrorController {
             HttpMessageNotReadableException ex,
             HttpServletRequest request) {
 
-        log.error("Unreadable body at: {} ", request.getRequestURI());
+        log.warn("Unreadable body at: {} ", request.getRequestURI());
 
         ApiErrorResponse response = new ApiErrorResponse(
                 HttpStatus.BAD_REQUEST,
