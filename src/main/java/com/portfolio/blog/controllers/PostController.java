@@ -2,7 +2,7 @@ package com.portfolio.blog.controllers;
 
 import com.portfolio.blog.domain.dto.post.PostRequest;
 import com.portfolio.blog.domain.dto.post.PostResponse;
-import com.portfolio.blog.domain.entities.StatusEntity;
+import com.portfolio.blog.domain.entities.Status;
 import com.portfolio.blog.services.PostServiceInterface;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class PostController {
     @GetMapping
     public ResponseEntity<List<PostResponse>> find(
             @RequestParam(required = false) UUID authorId,
-            @RequestParam(required = false) StatusEntity status,
+            @RequestParam(required = false) Status status,
             @RequestParam(required = false) String categoryName,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -58,19 +58,3 @@ public class PostController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

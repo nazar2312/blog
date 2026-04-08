@@ -20,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -58,8 +59,9 @@ public class JwtService implements JwtServiceInterface {
 
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(token)
-                .user(userRepository.findByEmail(details.getUsername()).get())
-                .expiringAt(LocalDateTime.now().plusSeconds(refreshExpiry/1000))
+                .user(userRepository.findByEmail(details.getUsername())
+                        .orElseThrow(() -> new UnauthenticatedException("Authentication failed")))
+                .expiringAt(LocalDateTime.now().plusSeconds(refreshExpiry / 1000))
                 .build();
 
         refreshTokenRepository.save(refreshToken);
@@ -85,11 +87,18 @@ public class JwtService implements JwtServiceInterface {
 
         var refresh = refreshTokenRepository.findByToken(token);
 
-        if(refresh.isEmpty()
+        if (refresh.isEmpty()
                 || LocalDateTime.now().isAfter(refresh.get().getExpiringAt())
                 || refresh.get().getUser() == null
                 || !refresh.get().getUser().isNonLocked()
         ) {
+            throw new UnauthenticatedException("Refresh token is not valid / expired");
+        }
+
+        // Validate signature;
+        try {
+            getClaims(refresh.get().getToken());
+        } catch (JwtException e) {
             throw new UnauthenticatedException("Refresh token is not valid / expired");
         }
     }
@@ -108,7 +117,7 @@ public class JwtService implements JwtServiceInterface {
             String username = getClaims(token).getSubject(); //Return claims if token is valid
             var user = userDetailsService.loadUserByUsername(username);
 
-            if(user.isAccountNonExpired() && user.isAccountNonLocked()) return user;
+            if (user.isAccountNonExpired() && user.isAccountNonLocked()) return user;
             else throw new JwtException("");
 
         } catch (JwtException e) {
@@ -139,11 +148,19 @@ public class JwtService implements JwtServiceInterface {
     @Override
     public void addToBlacklist(String jti) {
 
+        long ttl = 0;
+
+        try {
+            ttl = getClaims(jti).getExpiration().getTime() - System.currentTimeMillis();
+            if (ttl < 0) {
+                ttl = 0;
+            }
+        } catch (JwtException ignored) {}
 
         redisTemplate.opsForValue().set(
                 "blacklist:" + jti,
                 "true",
-                Duration.ofMillis(calculateTTL(jti))
+                Duration.ofMillis(ttl)
         );
     }
 
@@ -157,17 +174,8 @@ public class JwtService implements JwtServiceInterface {
                 .getBody(); //Return claims if token is valid
     }
 
-    private long calculateTTL(String accessToken) {
-        // Calculating TTL (time to live) by subtracting current time from token expiration;
-        long ttl = getClaims(accessToken).getExpiration().getTime() - System.currentTimeMillis();
-        if(ttl < 0 ) {
-            throw new UnauthenticatedException("Token is expired");
-        }
-        return ttl;
-    }
-
     private Key getSigningKey() {
-        byte[] keyBytes = secretKey.getBytes();
+        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }

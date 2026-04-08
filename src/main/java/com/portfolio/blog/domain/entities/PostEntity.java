@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -54,7 +54,7 @@ public class PostEntity {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private StatusEntity status;
+    private Status status;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -67,7 +67,7 @@ public class PostEntity {
             joinColumns = @JoinColumn(name = "post_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
-    private List<TagEntity> tags;
+    private Set<TagEntity> tags;
 
 
 

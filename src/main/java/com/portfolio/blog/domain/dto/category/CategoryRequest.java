@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class CategoryRequest {
 
     @NotBlank(message = "Category name is required")
-    @Size(min = 2, max = 20, message = "Category name size must be between 2 and 20 characters")
+    @Size(max = 50, message = "Category name size must be between 2 and 20 characters")
     @Pattern(regexp = "^[\\w\\s-]+$", message = "Unauthorised characters were used when creating name")
     private String name;
 }

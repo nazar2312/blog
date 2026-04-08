@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -19,7 +19,7 @@ public class TagController {
     private final TagServiceInterface service;
 
     @GetMapping
-    public ResponseEntity<List<TagResponse>> findAll() {
+    public ResponseEntity<Set<TagResponse>> findAll() {
         return ResponseEntity.ok(service.findAll());
     }
 

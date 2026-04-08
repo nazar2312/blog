@@ -3,14 +3,14 @@ package com.portfolio.blog.domain.dto.post;
 import com.portfolio.blog.domain.dto.user.User;
 import com.portfolio.blog.domain.dto.category.CategoryResponse;
 import com.portfolio.blog.domain.dto.tag.TagResponse;
-import com.portfolio.blog.domain.entities.StatusEntity;
+import com.portfolio.blog.domain.entities.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -23,7 +23,7 @@ public class PostResponse {
     String content;
     LocalDateTime created;
     User author;
-    StatusEntity status;
+    Status status;
     CategoryResponse category;
-    List<TagResponse> tags;
+    Set<TagResponse> tags;
 }

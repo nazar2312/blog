@@ -4,7 +4,7 @@ import com.portfolio.blog.domain.dto.post.PostRequest;
 import com.portfolio.blog.domain.dto.post.PostResponse;
 import com.portfolio.blog.domain.entities.PostEntity;
 import com.portfolio.blog.domain.entities.Role;
-import com.portfolio.blog.domain.entities.StatusEntity;
+import com.portfolio.blog.domain.entities.Status;
 import com.portfolio.blog.domain.entities.UserEntity;
 import com.portfolio.blog.mappers.PostMapper;
 import com.portfolio.blog.repositories.PostRepository;
@@ -46,14 +46,14 @@ public class PostService implements PostServiceInterface {
 
         if (currentUser == null) {
             spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("status"), StatusEntity.PUBLISHED));
+                    criteriaBuilder.equal(root.get("status"), Status.PUBLISHED));
         } else if (currentUser.getRole() == Role.USER) {
 
             spec = spec.and((root, query, criteriaBuilder) ->
 
                     // Either post is published or it's users DRAFT
                     criteriaBuilder.or(
-                            criteriaBuilder.equal(root.get("status"), StatusEntity.PUBLISHED),
+                            criteriaBuilder.equal(root.get("status"), Status.PUBLISHED),
                             criteriaBuilder.equal(root.get("author").get("id"), currentUser.getId())
                     )
             );
@@ -65,9 +65,9 @@ public class PostService implements PostServiceInterface {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<PostResponse> findSpecific(UUID authorId,
-                                           StatusEntity status,
+                                           Status status,
                                            String categoryName,
                                            int pageNumber,
                                            int size
@@ -94,13 +94,13 @@ public class PostService implements PostServiceInterface {
         */
         if (currentUser == null) {
             spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("status"), StatusEntity.PUBLISHED));
+                    criteriaBuilder.equal(root.get("status"), Status.PUBLISHED));
 
         } else if (currentUser.getRole().equals(Role.USER)) {
 
             spec = spec.and((root, query, criteriaBuilder) ->
                     criteriaBuilder.or(
-                            criteriaBuilder.equal(root.get("status"), StatusEntity.PUBLISHED),
+                            criteriaBuilder.equal(root.get("status"), Status.PUBLISHED),
                             criteriaBuilder.equal(root.get("author"), currentUser)
                     )
             );
@@ -124,7 +124,10 @@ public class PostService implements PostServiceInterface {
         PostEntity postEntity = mapper.requestToEntity(request);
         postEntity.setAuthor(userService.getUserFromSecurityContextHolder());
         postEntity.setCategory(categoryService.verifyCategory(request));
-        postEntity.setTags(tagService.verifyTags(request));
+
+        if (!request.getTags().isEmpty()) {
+            postEntity.setTags(tagService.verifyTags(request));
+        }
 
         return mapper.entityToResponse(repository.save(postEntity));
     }
@@ -165,17 +168,3 @@ public class PostService implements PostServiceInterface {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

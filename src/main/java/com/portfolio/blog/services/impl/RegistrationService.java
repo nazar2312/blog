@@ -20,7 +20,7 @@ public class RegistrationService implements RegistrationServiceInterface {
     @Override
     public void createUser(RegistrationRequest request) {
 
-        if(repository.findByEmail(request.getEmail()).isEmpty()) {
+        if (repository.findByEmail(request.getEmail()).isEmpty()) {
 
             String encodedPassword = passwordEncoder.encode(request.getPassword());
 

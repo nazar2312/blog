@@ -4,7 +4,7 @@ import com.portfolio.blog.domain.dto.post.PostRequest;
 import com.portfolio.blog.domain.dto.tag.TagRequest;
 import com.portfolio.blog.domain.dto.tag.TagResponse;
 import com.portfolio.blog.domain.entities.TagEntity;
-import com.portfolio.blog.exceptions.ConflictException;
+import com.portfolio.blog.exceptions.ResourceNotFoundException;
 import com.portfolio.blog.mappers.TagMapper;
 import com.portfolio.blog.repositories.TagRepository;
 import com.portfolio.blog.services.AuthorizationServiceInterface;
@@ -14,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,11 +33,11 @@ public class TagService implements TagServiceInterface {
     }
 
     @Override
-    public List<TagResponse> findAll() {
+    public Set<TagResponse> findAll() {
 
         return repository.findAll().stream().map(
                         mapper::entityToResponse)
-                .toList();
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -47,19 +49,19 @@ public class TagService implements TagServiceInterface {
     }
 
     @Override
-    public List<TagEntity> verifyTags(PostRequest request) {
+    public Set<TagEntity> verifyTags(PostRequest request) {
 
-        List<TagRequest> tagsFromRequest = request.getTags();
+        Set<TagRequest> tagsFromRequest = request.getTags();
 
         List<String> nameOfTagsFromRequest = tagsFromRequest.stream()
                 .map(TagRequest::getName)
                 .toList();
 
-        List<TagEntity> tags = repository.findTagEntitiesByNameIn(nameOfTagsFromRequest);
+        Set<TagEntity> tags = repository.findTagEntitiesByNameIn(nameOfTagsFromRequest);
 
         if (tags.size() != tagsFromRequest.size())
 
-            throw new ConflictException("Only existing tags can be assigned");
+            throw new ResourceNotFoundException("Only existing tags can be assigned");
 
         return tags;
     }

@@ -4,6 +4,7 @@ import com.portfolio.blog.domain.dto.authentication.LoginRequest;
 import com.portfolio.blog.domain.dto.authentication.LoginResponse;
 import com.portfolio.blog.domain.dto.authentication.LogoutResponse;
 import com.portfolio.blog.domain.dto.authentication.RefreshResponse;
+import com.portfolio.blog.domain.entities.UserEntity;
 import com.portfolio.blog.exceptions.UnauthenticatedException;
 import com.portfolio.blog.services.AuthenticationServiceInterface;
 import com.portfolio.blog.services.CookieServiceInterface;
@@ -35,6 +36,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
     private final UserDetailsService userDetailsService;
     private final JwtServiceInterface jwtService;
     private final CookieServiceInterface cookieService;
+    private final UserService userService;
 
     @Override
     public UserDetails authenticate(String email, String password) {
@@ -44,7 +46,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
             authManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         } catch (AuthenticationException e) {
             log.warn("| Authentication failed | Exception message - {}  |", e.getMessage());
-            throw new UnauthenticatedException("Unauthenticated ");
+            throw new UnauthenticatedException("Authentication failed, incorrect username/password");
         }
         //  Returning User Details if username and password is valid (exception is not thrown)
         return userDetailsService.loadUserByUsername(email);
@@ -99,6 +101,8 @@ public class AuthenticationService implements AuthenticationServiceInterface {
     @Override
     public LogoutResponse logout(String refreshToken, HttpServletRequest request, HttpServletResponse response) {
 
+        UserEntity user = userService.getUserFromSecurityContextHolder();
+
         jwtService.deleteRefreshToken(refreshToken); // Removing refresh token from the database
         cookieService.removeTokenFromCookie(response);  // Removing refresh token from the cookies
         SecurityContextHolder.getContext().setAuthentication(null);
@@ -109,7 +113,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
             jwtService.addToBlacklist(accessToken); // Adding access token to the blacklist.
         }
 
-        log.info("User [ {} ] successfully logged out", jwtService.getClaims(refreshToken).getSubject());
+        log.info("User [ {} ] successfully logged out", user.getEmail());
         return new LogoutResponse(
                 HttpStatus.OK.value(),
                 "Successfully logged out",

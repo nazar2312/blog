@@ -1,5 +1,5 @@
 package com.portfolio.blog.domain.entities;
 
-public enum StatusEntity {
+public enum Status {
     PUBLISHED, DRAFT
 }
