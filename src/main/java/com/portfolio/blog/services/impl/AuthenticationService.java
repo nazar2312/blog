@@ -105,7 +105,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
 
         jwtService.deleteRefreshToken(refreshToken); // Removing refresh token from the database
         cookieService.removeTokenFromCookie(response);  // Removing refresh token from the cookies
-        SecurityContextHolder.getContext().setAuthentication(null);
+
 
         String accessToken = jwtService.extractToken(request);
 
@@ -114,6 +114,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
         }
 
         log.info("User [ {} ] successfully logged out", user.getEmail());
+        SecurityContextHolder.getContext().setAuthentication(null);
         return new LogoutResponse(
                 HttpStatus.OK.value(),
                 "Successfully logged out",

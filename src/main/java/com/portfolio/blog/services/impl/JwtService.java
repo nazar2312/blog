@@ -8,9 +8,9 @@ import com.portfolio.blog.services.JwtServiceInterface;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +20,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -52,9 +52,9 @@ public class JwtService implements JwtServiceInterface {
     public String generateRefreshToken(UserDetails details) {
 
         String token = Jwts.builder()
-                .setSubject(details.getUsername())
-                .setExpiration(new Date(System.currentTimeMillis() + refreshExpiry))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .subject(details.getUsername())
+                .expiration(new Date(System.currentTimeMillis() + refreshExpiry))
+                .signWith( getSigningKey())
                 .compact();
 
         RefreshToken refreshToken = RefreshToken.builder()
@@ -73,12 +73,12 @@ public class JwtService implements JwtServiceInterface {
     public String generateToken(UserDetails details) {
 
         return Jwts.builder()
-                .setSubject(details.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiry))
+                .subject(details.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + jwtExpiry))
                 .claim("role", details.getAuthorities().stream().findFirst()
-                        .map(a -> a.getAuthority()).orElse("USER")) //Set USER if authority is not assigned
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                        .map(GrantedAuthority::getAuthority).orElse("USER")) //Set USER if authority is not assigned
+                .signWith(getSigningKey())
                 .compact();
     }
 
@@ -166,15 +166,14 @@ public class JwtService implements JwtServiceInterface {
 
     @Override
     public Claims getClaims(String token) {
-
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
                 .build()
-                .parseClaimsJws(token) //Validates signature
-                .getBody(); //Return claims if token is valid
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
-    private Key getSigningKey() {
+    private SecretKey getSigningKey() {
         byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
