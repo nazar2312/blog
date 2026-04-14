@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -52,9 +53,10 @@ public class JwtService implements JwtServiceInterface {
     public String generateRefreshToken(UserDetails details) {
 
         String token = Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(details.getUsername())
                 .expiration(new Date(System.currentTimeMillis() + refreshExpiry))
-                .signWith( getSigningKey())
+                .signWith(getSigningKey())
                 .compact();
 
         RefreshToken refreshToken = RefreshToken.builder()
