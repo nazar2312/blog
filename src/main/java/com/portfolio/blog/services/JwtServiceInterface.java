@@ -12,7 +12,7 @@ public interface JwtServiceInterface {
     void deleteRefreshToken(String refreshToken);
 
     //  Access token operations
-    String generateToken(UserDetails details);
+    String generateAccessToken(UserDetails details);
     UserDetails validateToken(String token);
     String extractToken(HttpServletRequest request);
     Claims getClaims(String token);

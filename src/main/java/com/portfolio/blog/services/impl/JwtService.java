@@ -4,13 +4,14 @@ import com.portfolio.blog.domain.entities.RefreshToken;
 import com.portfolio.blog.exceptions.UnauthenticatedException;
 import com.portfolio.blog.repositories.RefreshTokenRepository;
 import com.portfolio.blog.repositories.UserRepository;
+import com.portfolio.blog.security.BlogUserDetails;
 import com.portfolio.blog.services.JwtServiceInterface;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.security.core.GrantedAuthority;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,37 +48,37 @@ public class JwtService implements JwtServiceInterface {
     private Long jwtExpiry;
 
 
-    @Transactional
     @Override
-    public String generateRefreshToken(UserDetails details) {
+    public String generateRefreshToken(@NotNull UserDetails details) {
+
+        var user = (BlogUserDetails) details;
 
         String token = Jwts.builder()
-                .subject(details.getUsername())
+                .subject(user.getUser().getEmail()) // UserEntity has (nullable = false), so, email cannot be null;
                 .expiration(new Date(System.currentTimeMillis() + refreshExpiry))
-                .signWith( getSigningKey())
+                .signWith(getSigningKey())
                 .compact();
 
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(token)
-                .user(userRepository.findByEmail(details.getUsername())
-                        .orElseThrow(() -> new UnauthenticatedException("Authentication failed")))
+                .user(user.getUser())
                 .expiringAt(LocalDateTime.now().plusSeconds(refreshExpiry / 1000))
                 .build();
 
         refreshTokenRepository.save(refreshToken);
-
         return token;
     }
 
     @Override
-    public String generateToken(UserDetails details) {
+    public String generateAccessToken(@NotNull UserDetails details) {
+
+        var user = (BlogUserDetails) details;
 
         return Jwts.builder()
                 .subject(details.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiry))
-                .claim("role", details.getAuthorities().stream().findFirst()
-                        .map(GrantedAuthority::getAuthority).orElse("USER")) //Set USER if authority is not assigned
+                .claim("role", user.getUser().getRole()) // UserEntity has (nullable = false), so, roles cannot be null;
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -85,19 +86,19 @@ public class JwtService implements JwtServiceInterface {
     @Override
     public void validateRefreshToken(String token) {
 
-        var refresh = refreshTokenRepository.findByToken(token);
+        var refresh = refreshTokenRepository.findByToken(token)
+                .orElseThrow(() -> new UnauthenticatedException("Refresh token is not valid / expired"));
 
-        if (refresh.isEmpty()
-                || LocalDateTime.now().isAfter(refresh.get().getExpiringAt())
-                || refresh.get().getUser() == null
-                || !refresh.get().getUser().isNonLocked()
+        if (LocalDateTime.now().isAfter(refresh.getExpiringAt())
+                || refresh.getUser() == null
+                || !refresh.getUser().isNonLocked()
         ) {
             throw new UnauthenticatedException("Refresh token is not valid / expired");
         }
 
         // Validate signature;
         try {
-            getClaims(refresh.get().getToken());
+            getClaims(refresh.getToken());
         } catch (JwtException e) {
             throw new UnauthenticatedException("Refresh token is not valid / expired");
         }
@@ -114,7 +115,7 @@ public class JwtService implements JwtServiceInterface {
     public UserDetails validateToken(String token) {
 
         try {
-            String username = getClaims(token).getSubject(); //Return claims if token is valid
+            String username = getClaims(token).getSubject(); //Return claims if the token is valid
             var user = userDetailsService.loadUserByUsername(username);
 
             if (user.isAccountNonExpired() && user.isAccountNonLocked()) return user;
@@ -155,7 +156,8 @@ public class JwtService implements JwtServiceInterface {
             if (ttl < 0) {
                 ttl = 0;
             }
-        } catch (JwtException ignored) {}
+        } catch (JwtException ignored) {
+        }
 
         redisTemplate.opsForValue().set(
                 "blacklist:" + jti,

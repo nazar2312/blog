@@ -41,7 +41,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
     @Override
     public UserDetails authenticate(String email, String password) {
 
-        //  Verifying user email and password, exception is thrown if data is invalid;
+        //  Verifying user email and password, the exception is thrown if data is invalid;
         try {
             authManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         } catch (AuthenticationException e) {
@@ -63,7 +63,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
         );
 
         //Generate token;
-        String accessToken = jwtService.generateToken(userDetails);
+        String accessToken = jwtService.generateAccessToken(userDetails);
         String refreshToken = jwtService.generateRefreshToken(userDetails);
 
         cookieService.addTokenToCookie(refreshToken, servletResponse);
@@ -81,7 +81,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
             String refreshToken
     ) {
 
-        jwtService.validateRefreshToken(refreshToken); //UnauthenticatedException is thrown if token isn't valid;
+        jwtService.validateRefreshToken(refreshToken); //UnauthenticatedException is thrown if the token isn't valid;
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(
                 jwtService.getClaims(refreshToken).getSubject()
@@ -95,7 +95,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
                 response
         );
 
-        return RefreshResponse.builder().token(jwtService.generateToken(userDetails)).build();
+        return RefreshResponse.builder().token(jwtService.generateAccessToken(userDetails)).build();
     }
 
     @Override
