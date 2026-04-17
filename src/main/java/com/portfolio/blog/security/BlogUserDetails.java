@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.List;
 
 /*
-    DTO that represents user object for authorisation process and used by Spring Security;
+    DTO that represents a user object for an authorization process and used by Spring Security;
  */
 @Getter
 @RequiredArgsConstructor

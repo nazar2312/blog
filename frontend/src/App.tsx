@@ -258,7 +258,7 @@ export default function App() {
             isEditing={!!editingPost}
         />
 
-        <main className="pt-16 max-w-[600px] mx-auto">
+        <main className="pt-16 max-w-5xl mx-auto">
           <AnimatePresence mode="wait">
 
             {view === 'discovery' && (
@@ -289,14 +289,14 @@ export default function App() {
                         <p className="text-sm text-black/30">No posts yet.</p>
                       </div>
                   ) : (
-                      <div className="divide-y divide-black/8">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
                         <AnimatePresence initial={false}>
                           {thoughts.map((thought) => (
                               <motion.div
                                   key={thought.id}
+                                  className="h-full"
                                   exit={{ opacity: 0, scale: 0.97, filter: 'blur(4px)' }}
                                   transition={{ duration: 0.25 }}
-                                  layout
                               >
                                 <ThoughtCard
                                     thought={thought}
@@ -318,7 +318,7 @@ export default function App() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="px-4 py-8"
+                    className="px-4 py-8 max-w-xl mx-auto"
                 >
                   <div className="mb-10">
                 <span className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-black/30">
@@ -421,16 +421,16 @@ export default function App() {
                   ) : thoughts.filter(t => t.author.email === user?.email).length === 0 ? (
                       <p className="text-center text-black/30 py-16 text-sm">No posts yet.</p>
                   ) : (
-                      <div className="divide-y divide-black/8">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4">
                         <AnimatePresence initial={false}>
                           {thoughts
                               .filter(t => t.author.email === user?.email)
                               .map(thought => (
                                   <motion.div
                                       key={thought.id}
+                                      className="h-full"
                                       exit={{ opacity: 0, scale: 0.97, filter: 'blur(4px)' }}
                                       transition={{ duration: 0.25 }}
-                                      layout
                                   >
                                     <ThoughtCard
                                         thought={thought}

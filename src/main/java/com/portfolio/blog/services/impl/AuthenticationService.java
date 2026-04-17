@@ -87,8 +87,8 @@ public class AuthenticationService implements AuthenticationServiceInterface {
                 jwtService.getClaims(refreshToken).getSubject()
         );
 
-        cookieService.removeTokenFromCookie(response);
-        jwtService.deleteRefreshToken(refreshToken);
+        cookieService.removeTokenFromCookie(response); //Delete from cookies
+        jwtService.deleteRefreshToken(refreshToken); //Delete from database
 
         cookieService.addTokenToCookie(
                 jwtService.generateRefreshToken(userDetails),
@@ -110,11 +110,12 @@ public class AuthenticationService implements AuthenticationServiceInterface {
         String accessToken = jwtService.extractToken(request);
 
         if( accessToken != null && !accessToken.isBlank()){
-            jwtService.addToBlacklist(accessToken); // Adding access token to the blacklist.
+            jwtService.addToBlacklist(accessToken); // Adding an access token to the blacklist.
         }
 
         log.info("User [ {} ] successfully logged out", user.getEmail());
         SecurityContextHolder.getContext().setAuthentication(null);
+
         return new LogoutResponse(
                 HttpStatus.OK.value(),
                 "Successfully logged out",

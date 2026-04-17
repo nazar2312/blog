@@ -2,7 +2,7 @@
 
 ### **Overview**
 
-The goal is to build blog application, focusing on authentication and authorization using JWT tokens and Spring Security
+The goal is to build a blog-application, focusing on authentication and authorization using JWT tokens and Spring Security
 
 ⚠️ _NOTE: Application is still in development, some features may not be working or unexpected bugs may arise;_
 
@@ -22,9 +22,9 @@ The goal is to build blog application, focusing on authentication and authorizat
 
 ### Features
 
-- JWT authentication / role based authorization
-- AI generated front-end
-- Swagger API documentation (available on : http://localhost:8080/swagger-ui/index.html#/)
+- JWT authentication / role-based authorization
+- AI-generated front-end
+- Swagger API documentation (available on: http://localhost:8080/swagger-ui/index.html#/)
 
 ### **Run locally**
 
@@ -32,7 +32,7 @@ The goal is to build blog application, focusing on authentication and authorizat
 
     application.properties 
 
-#### and configure following variables:
+#### and configure the following variables:
 
 PostgreSQL credentials:
 
@@ -57,7 +57,7 @@ Default administrator account credentials:
 
     docker-compose.yml
 
-#### and configure following:
+#### and configure the following:
 
     POSTGRES_PASSWORD: {YOUR_PASSWORD}
     POSTGRES_USER: {YOUR_USER}
@@ -66,7 +66,7 @@ Default administrator account credentials:
 
 ⚠️ _NOTE: must match values in the application.properties_
 
-#### Open terminal in your IDE and type:
+#### Open the terminal in your IDE and type:
 
 - > mvn clean install
 - > docker compose up
@@ -80,7 +80,7 @@ Default administrator account credentials:
 - Tailwind
 
 
-#### Open terminal in your IDE and type:
+#### Open the terminal in your IDE and type:
 
     cd frontend
 

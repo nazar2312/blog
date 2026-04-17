@@ -1,6 +1,9 @@
-import { Thought } from '../types';
+import { Thought, User } from '../types';
 
-function parseJwt(token: string) {
+// Token kept in memory only — never persisted to localStorage
+let accessToken: string | null = null;
+
+function parseJwt(token: string): Record<string, unknown> | null {
   try {
     return JSON.parse(atob(token.split('.')[1]));
   } catch {
@@ -8,26 +11,34 @@ function parseJwt(token: string) {
   }
 }
 
-class ApiService {
-  private token: string | null = localStorage.getItem('token');
+function userFromToken(token: string, usernameOverride?: string): User {
+  const payload = parseJwt(token);
+  const email = (payload?.sub as string) || '';
+  return {
+    id: email,
+    username: usernameOverride ?? email.split('@')[0],
+    email,
+    role: (payload?.role as 'ADMIN' | 'USER') ?? 'USER',
+  };
+}
 
+class ApiService {
   setToken(token: string | null) {
-    this.token = token;
-    if (token) {
-      localStorage.setItem('token', token);
-    } else {
-      localStorage.removeItem('token');
-    }
+    accessToken = token;
   }
 
-  private async fetchJson<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const headers: HeadersInit = {
+  private async fetchJson<T>(
+      endpoint: string,
+      options?: RequestInit,
+      allowRetry = true,
+  ): Promise<T> {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options?.headers,
+      ...(options?.headers as Record<string, string>),
     };
 
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
     }
 
     const response = await fetch(endpoint, {
@@ -36,23 +47,46 @@ class ApiService {
       credentials: 'include',
     });
 
+    // Access token expired — try to refresh once, then retry the original request
+    if (response.status === 401 && allowRetry) {
+      try {
+        await this.refresh();
+        return this.fetchJson<T>(endpoint, options, false);
+      } catch {
+        this.setToken(null);
+        throw new Error('Session expired. Please log in again.');
+      }
+    }
+
     if (!response.ok) {
       const contentType = response.headers.get('content-type');
       let errorMessage = response.statusText;
       if (contentType?.includes('application/json')) {
         const error = await response.json().catch(() => ({}));
-        errorMessage = error.message || errorMessage;
+        errorMessage = (error as { message?: string }).message ?? errorMessage;
       }
       throw new Error(errorMessage);
     }
 
     if (response.status === 204) return undefined as T;
-
     return response.json();
   }
 
-  async getPosts(): Promise<Thought[]> {
-    return this.fetchJson<Thought[]>('/api/posts');
+  async getPosts(params?: {
+    authorId?: string;
+    status?: string;
+    categoryName?: string;
+    page?: number;
+    size?: number;
+  }): Promise<Thought[]> {
+    const query = new URLSearchParams();
+    if (params?.authorId) query.set('authorId', params.authorId);
+    if (params?.status) query.set('status', params.status);
+    if (params?.categoryName) query.set('categoryName', params.categoryName);
+    if (params?.page !== undefined) query.set('page', String(params.page));
+    if (params?.size !== undefined) query.set('size', String(params.size));
+    const qs = query.toString();
+    return this.fetchJson<Thought[]>(`/api/posts${qs ? `?${qs}` : ''}`);
   }
 
   async getPost(id: string): Promise<Thought> {
@@ -72,13 +106,16 @@ class ApiService {
     });
   }
 
-  async updatePost(id: string, post: {
-    title: string;
-    content: string;
-    status: 'PUBLISHED' | 'DRAFT';
-    category: { name: string };
-    tags: { name: string }[];
-  }): Promise<Thought> {
+  async updatePost(
+      id: string,
+      post: {
+        title: string;
+        content: string;
+        status: 'PUBLISHED' | 'DRAFT';
+        category: { name: string };
+        tags: { name: string }[];
+      },
+  ): Promise<Thought> {
     return this.fetchJson<Thought>(`/api/posts/${id}`, {
       method: 'PUT',
       body: JSON.stringify(post),
@@ -97,39 +134,55 @@ class ApiService {
     return this.fetchJson('/api/tags');
   }
 
-  async login(credentials: { email: string; password: string }) {
+  async login(credentials: { email: string; password: string }): Promise<{ user: User }> {
     const data = await this.fetchJson<{ token: string }>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
-
     this.setToken(data.token);
-
-    const payload = parseJwt(data.token);
-    const user = {
-      id: payload?.sub || '',
-      username: credentials.email.split('@')[0],
-      email: credentials.email,
-    };
-    localStorage.setItem('user', JSON.stringify(user));
-
-    return { token: data.token, user };
+    return { user: userFromToken(data.token) };
   }
 
-  async register(data: { username: string; email: string; password: string }) {
+  async register(data: {
+    username: string;
+    email: string;
+    password: string;
+  }): Promise<{ user: User }> {
     await this.fetchJson('/api/registration', {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    return this.login({ email: data.email, password: data.password });
+    const result = await this.login({ email: data.email, password: data.password });
+    // Override the email-derived username with the one the user actually registered with
+    return { user: { ...result.user, username: data.username } };
+  }
+
+  async refresh(): Promise<void> {
+    // allowRetry=false to prevent infinite loop
+    const data = await this.fetchJson<{ token: string }>(
+        '/api/auth/refresh',
+        { method: 'POST' },
+        false,
+    );
+    this.setToken(data.token);
   }
 
   async logout(): Promise<void> {
     try {
-      await this.fetchJson('/api/auth/logout', { method: 'POST' });
+      await this.fetchJson('/api/auth/logout', { method: 'POST' }, false);
     } finally {
       this.setToken(null);
-      localStorage.removeItem('user');
+    }
+  }
+
+  // Called on app mount — restores the session silently using the httpOnly refresh cookie
+  async restoreSession(): Promise<User | null> {
+    try {
+      await this.refresh();
+      if (!accessToken) return null;
+      return userFromToken(accessToken);
+    } catch {
+      return null;
     }
   }
 }

@@ -18,7 +18,7 @@ public class AuthorizationService implements AuthorizationServiceInterface {
     private final UserServiceInterface userService;
 
     //  If Role.ADMIN user is allowed to delete/update posts of any user.
-    //  In case if Role.USER, user is only allowed to delete/update his own posts.
+    //  In case if Role.USER - user is only allowed to delete/update his own posts.
 
     @Override
     public void authorizeUpdatingOrDeleting(PostEntity postToUpdate, UserEntity currentUser) {

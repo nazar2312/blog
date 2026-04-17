@@ -4,17 +4,15 @@ import com.portfolio.blog.TestDataUtil;
 import com.portfolio.blog.domain.entities.RefreshToken;
 import com.portfolio.blog.exceptions.UnauthenticatedException;
 import com.portfolio.blog.repositories.RefreshTokenRepository;
-import com.portfolio.blog.repositories.UserRepository;
 import com.portfolio.blog.security.BlogUserDetails;
 import com.portfolio.blog.services.impl.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 
 import java.time.LocalDateTime;
@@ -25,46 +23,49 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 public class JwtServiceTests {
 
-    @Autowired
-    JwtService jwtService;
-
-    @Value("${refresh.expiry}")
-    private Long refreshExpiry;
-
-    @Value("${jwt.secret}")
-    private String secretKey;
-
-    @Value("${jwt.expiry}")
-    private Long jwtExpiry;
-
-    @MockitoBean
+    @Mock
     private StringRedisTemplate redisTemplate;
 
-    @MockitoBean
+    @Mock
     private UserDetailsService userDetailsService;
 
-    @MockitoBean
+    @Mock
     private RefreshTokenRepository refreshTokenRepository;
 
-    @MockitoBean
-    private UserRepository userRepository;
+    private BlogUserDetails userDetails;
+    private String token;
+    private RefreshToken refreshToken;
+    private String invalidToken;
 
-    private BlogUserDetails validUser;
+    private final Long refreshExpiry = 8400000L;
+    private final String secretKey = "xvdLIGVz4LA6uNb2sw1qorw/9cr9/AM3i77YXSQa1ts=";
+    private final Long jwtExpiry = 1000000L;
+
+    private JwtService jwtService;
 
     @BeforeEach
     void setUp() {
-        this.validUser = TestDataUtil.generateValidUserDetails();
+        this.jwtService = new JwtService(redisTemplate,
+                userDetailsService,
+                refreshTokenRepository,
+                refreshExpiry,
+                secretKey,
+                jwtExpiry
+        );
+        this.userDetails = TestDataUtil.generateValidUserDetails();
+        this.token = TestDataUtil.generateToken(userDetails, jwtExpiry, secretKey);
+        this.refreshToken = TestDataUtil.generateRefreshEntity(token, userDetails, jwtExpiry);
+        this.invalidToken = TestDataUtil.generateInvalidToken(userDetails, jwtExpiry);
+
     }
 
-    @Test // Method is the pure transformation, every negative outcome prevented at the layer above;
+    @Test
     void generateRefreshToken_shouldReturnToken() {
-
-        var user = validUser;
-
-        String token = jwtService.generateRefreshToken(user);
+        // Method is the pure transformation, every negative outcome prevented at the layer above;
+        String token = jwtService.generateRefreshToken(userDetails);
 
         assertNotNull(token);
         assertFalse(token.isEmpty());
@@ -73,12 +74,11 @@ public class JwtServiceTests {
         verify(refreshTokenRepository, times(1)).save(any(RefreshToken.class));
     }
 
-    @Test // Method is the pure transformation, every negative outcome prevented at the layer above;
-    void generateAccessToken_shouldReturnToken(){
+    @Test
+        // Method is the pure transformation, every negative outcome prevented at the layer above;
+    void generateAccessToken_shouldReturnToken () {
 
-        var user = TestDataUtil.generateValidUserDetails();
-
-        String token = jwtService.generateAccessToken(user);
+        String token = jwtService.generateAccessToken(userDetails);
 
         assertNotNull(token);
         assertFalse(token.isEmpty());
@@ -86,32 +86,58 @@ public class JwtServiceTests {
     }
 
     @Test
-    void validateRefreshToken_passes_whenAllConditionsAreMet() {
-
-        String token = TestDataUtil.generateToken(validUser, refreshExpiry, secretKey);
+    void validateRefreshToken_passes_whenAllConditionsAreMet () {
 
         RefreshToken refreshTokenEntity = new RefreshToken(
                 UUID.randomUUID(),
                 token,
-                validUser.getUser(),
+                userDetails.getUser(),
                 LocalDateTime.now(),
                 LocalDateTime.now().plusSeconds(refreshExpiry)
         );
 
         when(refreshTokenRepository.findByToken(token))
                 .thenReturn(Optional.of(refreshTokenEntity));
-
-        jwtService.validateRefreshToken(token);
-        assertDoesNotThrow(() -> UnauthenticatedException.class);
-
+        assertDoesNotThrow( () -> jwtService.validateRefreshToken(token) );
     }
 
+    @Test
+    void validateRefreshToken_throws_whenNotFoundInDatabase() {
 
+        when(refreshTokenRepository.findByToken(token)).thenReturn(
+                Optional.empty()
+        );
+        assertThrows(UnauthenticatedException.class, () -> jwtService.validateRefreshToken(token));
+    }
 
+    @Test
+    void validateRefreshToken_throws_whenTokenExpired() {
+        // Making sure that token is expired;
+        refreshToken.setExpiringAt(LocalDateTime.now().minusYears(10));
 
+        when(refreshTokenRepository.findByToken(token))
+                .thenReturn(Optional.of(refreshToken));
 
+        assertThrows(UnauthenticatedException.class , () -> jwtService.validateRefreshToken(token));
+    }
 
+    @Test
+    void validateRefreshToken_throws_whenUserIsLocked() {
+        //Making sure that the user is locked;
+        refreshToken.getUser().setNonLocked(false);
+        when(refreshTokenRepository.findByToken(token))
+                .thenReturn(Optional.of(refreshToken));
 
+        assertThrows(UnauthenticatedException.class, () -> jwtService.validateRefreshToken(token));
+    }
 
+    @Test
+    void validateRefreshToken_throws_whenSignatureFailsValidation () {
+        // Making sure that the RefreshToken entity uses invalid token;
+        refreshToken.setToken(invalidToken);
+        when(refreshTokenRepository.findByToken(invalidToken))
+                .thenReturn(Optional.of(refreshToken));
 
+        assertThrows(UnauthenticatedException.class, () -> jwtService.validateRefreshToken(invalidToken));
+    }
 }

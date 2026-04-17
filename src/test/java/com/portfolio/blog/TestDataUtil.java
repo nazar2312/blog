@@ -1,5 +1,6 @@
 package com.portfolio.blog;
 
+import com.portfolio.blog.domain.entities.RefreshToken;
 import com.portfolio.blog.domain.entities.Role;
 import com.portfolio.blog.domain.entities.UserEntity;
 import com.portfolio.blog.security.BlogUserDetails;
@@ -26,12 +27,10 @@ public class TestDataUtil {
                 .created(LocalDateTime.now())
                 .updated(LocalDateTime.now())
                 .build();
-
         return new BlogUserDetails(user);
     }
 
     public static String generateToken(BlogUserDetails details, long jwtExpiry, String secretKey) {
-
         return Jwts.builder()
                 .subject(details.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
@@ -40,6 +39,31 @@ public class TestDataUtil {
                 .signWith(getSigningKey(secretKey))
                 .compact();
     }
+
+    public static String generateInvalidToken (BlogUserDetails details, long jwtExpiry) {
+
+        String invalidSecretKey = "xvdLIGVz4LA6uNb2sw1qor129cr9/AM3i7xxXSAa1ts=";
+        return Jwts.builder()
+                .subject(details.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + jwtExpiry))
+                .claim("role", details.getUser().getRole())
+                .signWith(getSigningKey(invalidSecretKey))
+                .compact();
+    }
+
+    public static RefreshToken generateRefreshEntity(String token, BlogUserDetails details, long jwtExpiry) {
+
+        return RefreshToken.builder()
+                .id(UUID.randomUUID())
+                .token(token)
+                .user(details.getUser())
+                .expiringAt(LocalDateTime.now().plusSeconds(jwtExpiry))
+                .issuedAt(LocalDateTime.now())
+                .build();
+
+    }
+
     private static SecretKey getSigningKey(String secretKey) {
         byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);

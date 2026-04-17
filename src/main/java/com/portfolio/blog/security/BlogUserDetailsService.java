@@ -10,7 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 /*
-    Service that converts user entity into userDetails, if it's persisting in the database;
+    Service that converts user entity into the userDetails, if it's persisting in the database;
  */
 @Service
 @RequiredArgsConstructor

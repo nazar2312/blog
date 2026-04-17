@@ -3,7 +3,6 @@ package com.portfolio.blog.services.impl;
 import com.portfolio.blog.domain.entities.RefreshToken;
 import com.portfolio.blog.exceptions.UnauthenticatedException;
 import com.portfolio.blog.repositories.RefreshTokenRepository;
-import com.portfolio.blog.repositories.UserRepository;
 import com.portfolio.blog.security.BlogUserDetails;
 import com.portfolio.blog.services.JwtServiceInterface;
 import io.jsonwebtoken.Claims;
@@ -12,7 +11,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,29 +21,38 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.sql.Ref;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class JwtService implements JwtServiceInterface {
 
-    private final StringRedisTemplate redisTemplate;
-    private final UserDetailsService userDetailsService;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final UserRepository userRepository;
+    private StringRedisTemplate redisTemplate;
+    private UserDetailsService userDetailsService;
+    private RefreshTokenRepository refreshTokenRepository;
 
-
-    @Value("${refresh.expiry}")
     private Long refreshExpiry;
-
-    @Value("${jwt.secret}")
     private String secretKey;
-
-    @Value("${jwt.expiry}")
     private Long jwtExpiry;
+
+    public JwtService (
+            StringRedisTemplate redisTemplate,
+            UserDetailsService userDetailsService,
+            RefreshTokenRepository refreshTokenRepository,
+            @Value("${refresh.expiry}") Long refreshExpiry,
+            @Value("${jwt.secret}") String secretKey,
+            @Value("${jwt.expiry}") Long jwtExpiry
+    ) {
+        this.redisTemplate = redisTemplate;
+        this.userDetailsService = userDetailsService;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.refreshExpiry = refreshExpiry;
+        this.secretKey = secretKey;
+        this.jwtExpiry = jwtExpiry;
+    }
 
 
     @Override
@@ -90,7 +97,6 @@ public class JwtService implements JwtServiceInterface {
                 .orElseThrow(() -> new UnauthenticatedException("Refresh token is not valid / expired"));
 
         if (LocalDateTime.now().isAfter(refresh.getExpiringAt())
-                || refresh.getUser() == null
                 || !refresh.getUser().isNonLocked()
         ) {
             throw new UnauthenticatedException("Refresh token is not valid / expired");
@@ -105,10 +111,12 @@ public class JwtService implements JwtServiceInterface {
     }
 
     @Override
-    @Transactional
     public void deleteRefreshToken(String refreshToken) {
 
         refreshTokenRepository.deleteByToken(refreshToken);
+
+        if(!refreshTokenRepository.findByToken(refreshToken).isEmpty()) log.error("Refresh token wasn't deleted");
+
     }
 
     @Override
