@@ -11,7 +11,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotNull;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.sql.Ref;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -30,15 +28,15 @@ import java.util.Date;
 @Slf4j
 public class JwtService implements JwtServiceInterface {
 
-    private StringRedisTemplate redisTemplate;
-    private UserDetailsService userDetailsService;
-    private RefreshTokenRepository refreshTokenRepository;
+    private final StringRedisTemplate redisTemplate;
+    private final UserDetailsService userDetailsService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    private Long refreshExpiry;
-    private String secretKey;
-    private Long jwtExpiry;
+    private final Long refreshExpiry;
+    private final String secretKey;
+    private final Long jwtExpiry;
 
-    public JwtService (
+    public JwtService(
             StringRedisTemplate redisTemplate,
             UserDetailsService userDetailsService,
             RefreshTokenRepository refreshTokenRepository,
@@ -114,9 +112,6 @@ public class JwtService implements JwtServiceInterface {
     public void deleteRefreshToken(String refreshToken) {
 
         refreshTokenRepository.deleteByToken(refreshToken);
-
-        if(!refreshTokenRepository.findByToken(refreshToken).isEmpty()) log.error("Refresh token wasn't deleted");
-
     }
 
     @Override
@@ -126,11 +121,12 @@ public class JwtService implements JwtServiceInterface {
             String username = getClaims(token).getSubject(); //Return claims if the token is valid
             var user = userDetailsService.loadUserByUsername(username);
 
-            if (user.isAccountNonExpired() && user.isAccountNonLocked()) return user;
-            else throw new JwtException("");
-
+            if (user.isAccountNonExpired() && user.isAccountNonLocked())
+                return user;
+            else
+                throw new JwtException("Access token is not valid / expired");
         } catch (JwtException e) {
-            throw new UnauthenticatedException("Access token is not valid / expired");
+            throw new UnauthenticatedException(e.getMessage());
         }
     }
 
@@ -161,11 +157,8 @@ public class JwtService implements JwtServiceInterface {
 
         try {
             ttl = getClaims(jti).getExpiration().getTime() - System.currentTimeMillis();
-            if (ttl < 0) {
-                ttl = 0;
-            }
-        } catch (JwtException ignored) {
-        }
+            if (ttl < 0) ttl = 0;
+        } catch (JwtException ignored) {}
 
         redisTemplate.opsForValue().set(
                 "blacklist:" + jti,

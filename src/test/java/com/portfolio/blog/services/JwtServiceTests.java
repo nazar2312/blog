@@ -140,4 +140,5 @@ public class JwtServiceTests {
 
         assertThrows(UnauthenticatedException.class, () -> jwtService.validateRefreshToken(invalidToken));
     }
+
 }

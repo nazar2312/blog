@@ -32,6 +32,4 @@ public class AdminController {
 
         return ResponseEntity.ok().body("User [" + blockedUser.email() +  " ] was permanently blocked" );
     }
-
-
 }
