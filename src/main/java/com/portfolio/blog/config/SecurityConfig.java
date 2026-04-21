@@ -75,13 +75,13 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(
                 List.of(
                         "https://frontend-ke7ier3nx-nazar2312s-projects.vercel.app",
-                        "https://frontend-production-06e8.up.railway.app/"
+                        "https://frontend-production-06e8.up.railway.app"
                 )
         );
 
-        configuration.setAllowedMethods(List.of("GET", "POST", "UPDATE", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowCredentials(true);
-
+        configuration.setAllowedHeaders(List.of("*"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
         source.registerCorsConfiguration("/**", configuration);
