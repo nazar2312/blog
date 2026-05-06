@@ -3,7 +3,7 @@ package com.portfolio.blog.domain.dto.post;
 import com.portfolio.blog.domain.dto.user.User;
 import com.portfolio.blog.domain.dto.category.CategoryResponse;
 import com.portfolio.blog.domain.dto.tag.TagResponse;
-import com.portfolio.blog.domain.entities.Status;
+import com.portfolio.blog.domain.entities.enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

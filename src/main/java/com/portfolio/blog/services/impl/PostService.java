@@ -3,8 +3,8 @@ package com.portfolio.blog.services.impl;
 import com.portfolio.blog.domain.dto.post.PostRequest;
 import com.portfolio.blog.domain.dto.post.PostResponse;
 import com.portfolio.blog.domain.entities.PostEntity;
-import com.portfolio.blog.domain.entities.Role;
-import com.portfolio.blog.domain.entities.Status;
+import com.portfolio.blog.domain.entities.enums.Role;
+import com.portfolio.blog.domain.entities.enums.Status;
 import com.portfolio.blog.domain.entities.UserEntity;
 import com.portfolio.blog.mappers.PostMapper;
 import com.portfolio.blog.repositories.PostRepository;
@@ -24,7 +24,6 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-
 public class PostService implements PostServiceInterface {
 
     private final PostRepository repository;

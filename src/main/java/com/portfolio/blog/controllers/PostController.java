@@ -2,7 +2,7 @@ package com.portfolio.blog.controllers;
 
 import com.portfolio.blog.domain.dto.post.PostRequest;
 import com.portfolio.blog.domain.dto.post.PostResponse;
-import com.portfolio.blog.domain.entities.Status;
+import com.portfolio.blog.domain.entities.enums.Status;
 import com.portfolio.blog.services.PostServiceInterface;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

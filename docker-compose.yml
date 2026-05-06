@@ -1,7 +1,6 @@
 services:
   redis:
     image: redis:alpine
-    command: redis-server --requirepass ${redis_password}
     ports:
       - "6379:6379"
   db:
@@ -23,4 +22,4 @@ services:
     image: adminer:latest
     restart: always
     ports:
-      - "8888:8080"
+      - "8888:8080" 

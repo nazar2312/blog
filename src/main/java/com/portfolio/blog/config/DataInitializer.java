@@ -1,6 +1,6 @@
 package com.portfolio.blog.config;
 
-import com.portfolio.blog.domain.entities.Role;
+import com.portfolio.blog.domain.entities.enums.Role;
 import com.portfolio.blog.domain.entities.UserEntity;
 import com.portfolio.blog.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ public class DataInitializer implements ApplicationRunner {
     private String password;
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    public void run(ApplicationArguments args) throws RuntimeException {
 
         if (userRepo.findByEmail(email).isEmpty()) {
 

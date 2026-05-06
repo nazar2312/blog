@@ -97,6 +97,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
     }
 
     @Override
+    @Transactional
     public LogoutResponse logout(String refreshToken, HttpServletRequest request, HttpServletResponse response) {
 
         UserEntity user = userService.getUserFromSecurityContextHolder();

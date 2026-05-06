@@ -1,5 +1,6 @@
 package com.portfolio.blog.domain.entities;
 
+import com.portfolio.blog.domain.entities.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 

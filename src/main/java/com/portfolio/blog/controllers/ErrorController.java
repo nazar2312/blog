@@ -77,7 +77,8 @@ public class ErrorController {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
 
-        log.error("Unexpected exception occurred at: {} : {}", request.getRequestURI(), ex.getMessage());
+        log.error("Unexpected exception occurred at: {} : {}", request.getRequestURI(), ex.getMessage(), ex.getStackTrace());
+        ex.printStackTrace();
 
         ApiErrorResponse response = new ApiErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,

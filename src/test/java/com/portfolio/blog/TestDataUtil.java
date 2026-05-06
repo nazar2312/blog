@@ -1,7 +1,7 @@
 package com.portfolio.blog;
 
 import com.portfolio.blog.domain.entities.RefreshToken;
-import com.portfolio.blog.domain.entities.Role;
+import com.portfolio.blog.domain.entities.enums.Role;
 import com.portfolio.blog.domain.entities.UserEntity;
 import com.portfolio.blog.security.BlogUserDetails;
 import io.jsonwebtoken.Jwts;

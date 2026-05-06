@@ -42,6 +42,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/tags/**").permitAll()
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/payment/products").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.OPTIONS).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -74,8 +75,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(
                 List.of(
-                        "https://frontend-ke7ier3nx-nazar2312s-projects.vercel.app",
-                        "https://frontend-production-06e8.up.railway.app"
+                        "https://frontend-production-06e8.up.railway.app",
+                        "http://localhost:5173" // for local development
                 )
         );
 

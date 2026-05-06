@@ -1,7 +1,7 @@
 package com.portfolio.blog.services.impl;
 
 import com.portfolio.blog.domain.dto.authentication.RegistrationRequest;
-import com.portfolio.blog.domain.entities.Role;
+import com.portfolio.blog.domain.entities.enums.Role;
 import com.portfolio.blog.domain.entities.UserEntity;
 import com.portfolio.blog.exceptions.ConflictException;
 import com.portfolio.blog.repositories.UserRepository;
@@ -24,17 +24,14 @@ public class RegistrationService implements RegistrationServiceInterface {
 
             String encodedPassword = passwordEncoder.encode(request.getPassword());
 
-            UserEntity userEntity = new UserEntity(
-                    null,
-                    request.getUsername(),
-                    request.getEmail(),
-                    Role.USER,
-                    true,
-                    encodedPassword,
-                    null,
-                    null,
-                    null
-            );
+            UserEntity userEntity = UserEntity.builder()
+                    .username(request.getUsername())
+                    .email(request.getEmail())
+                    .role(Role.USER)
+                    .nonLocked(true)
+                    .password(encodedPassword)
+                    .build();
+
             repository.save(userEntity);
 
         } else throw new ConflictException("User is already exists");

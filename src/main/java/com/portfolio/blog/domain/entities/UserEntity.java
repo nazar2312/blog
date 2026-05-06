@@ -1,5 +1,6 @@
 package com.portfolio.blog.domain.entities;
 
+import com.portfolio.blog.domain.entities.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
@@ -21,6 +22,9 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(updatable = false, nullable = false, unique = true)
     private UUID id;
+
+    @Column(name= "customer_id", unique = true)
+    private String customerId;
 
     @Column(nullable = false)
     private String username;

@@ -1,7 +1,7 @@
 package com.portfolio.blog.services.impl;
 
 import com.portfolio.blog.domain.dto.user.User;
-import com.portfolio.blog.domain.entities.Role;
+import com.portfolio.blog.domain.entities.enums.Role;
 import com.portfolio.blog.domain.entities.UserEntity;
 import com.portfolio.blog.exceptions.ConflictException;
 import com.portfolio.blog.exceptions.ForbiddenException;

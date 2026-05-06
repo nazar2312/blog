@@ -2,7 +2,7 @@ package com.portfolio.blog.domain.dto.post;
 
 import com.portfolio.blog.domain.dto.category.CategoryRequest;
 import com.portfolio.blog.domain.dto.tag.TagRequest;
-import com.portfolio.blog.domain.entities.Status;
+import com.portfolio.blog.domain.entities.enums.Status;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;

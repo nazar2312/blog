@@ -82,6 +82,8 @@ Default administrator account credentials:
 
 #### Open the terminal in your IDE and type:
 
+    git pull https://github.com/nazar2312/frontend
+
     cd frontend
 
     npm install
