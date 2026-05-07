@@ -1,12 +1,11 @@
 package com.portfolio.blog.services;
 
-import com.portfolio.blog.domain.dto.payment.CreateProductRequest;
-import com.portfolio.blog.domain.dto.payment.ProductResponse;
-
-import java.util.List;
+import com.portfolio.blog.domain.entities.UserEntity;
+import com.stripe.model.Customer;
 
 public interface PaymentServiceInterface {
-    List<ProductResponse> getProducts();
 
-    ProductResponse createProduct(CreateProductRequest productRequest);
+    String createCheckoutSession();
+
+    Customer createCustomer(UserEntity user);
 }
