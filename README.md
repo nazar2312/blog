@@ -2,10 +2,10 @@
 
 ### **Overview**
 
-The goal is to build a blog-application, focusing on authentication and authorization using JWT tokens and Spring Security
+📌 The goal is to build a blog-application, focusing on authentication and authorization using JWT tokens and Spring Security
 
-⚠️ _NOTE: Application is still in development, some features may not be working or unexpected bugs may arise;_
-
+⚙️ Current progress : working on Stripe API integration. Goal is to provide to only premium users access to the upcoming AI features.   
+ 
 ### Tech-stack and tools
 
 - Java 21
@@ -16,15 +16,15 @@ The goal is to build a blog-application, focusing on authentication and authoriz
 - Docker 28.1
 - IntelliJ IDEA
 - PostgreSQL
+- Stripe API
 - Redis
 - Open API / Swagger documentation
 
 
 ### Features
-
+- Stripe API integration for managing premium subscriptions
 - JWT authentication / role-based authorization
 - AI-generated front-end
-- Swagger API documentation (available on: http://localhost:8080/swagger-ui/index.html#/)
 
 ### **Run locally**
 
