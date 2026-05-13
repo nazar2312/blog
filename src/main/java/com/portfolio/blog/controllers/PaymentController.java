@@ -1,6 +1,7 @@
 package com.portfolio.blog.controllers;
 
-import com.portfolio.blog.services.PaymentServiceInterface;
+import com.portfolio.blog.services.StripeCustomerServiceInterface;
+import com.portfolio.blog.services.StripeEventHandlerServiceInterface;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.net.Webhook;
@@ -16,20 +17,22 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(path = "/api/payment")
 public class PaymentController {
 
-    private final PaymentServiceInterface paymentService;
-    // Secret that is user to create webhook signature
-    private final String webhookSecret;
+    private final StripeCustomerServiceInterface paymentService;
+    private final String webhookSecret; // Secret that is used to create webhook signature
+    private final StripeEventHandlerServiceInterface stripeService;
 
     public PaymentController(
-            PaymentServiceInterface paymentService,
-            @Value("${stripe.webhook.secret}") String webhookSecret) {
+            StripeCustomerServiceInterface paymentService,
+            @Value("${stripe.webhook.secret}") String webhookSecret, StripeEventHandlerServiceInterface stripeService)
+    {
         this.paymentService = paymentService;
         this.webhookSecret = webhookSecret;
+        this.stripeService = stripeService;
     }
 
     @PostMapping(path = "/checkout")
     public ResponseEntity<String> createCheckout() {
-        return ResponseEntity.ok().body(paymentService.createCheckoutSession());
+        return ResponseEntity.ok().body(paymentService.checkout());
     }
 
     @PostMapping(path = "/webhook")
@@ -39,13 +42,11 @@ public class PaymentController {
     ) {
         try {
             Event event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
-            System.out.println(event.toString());
-            System.out.println(" \n \n \n ");
+            stripeService.handle(event);
 
         } catch (SignatureVerificationException e) {
             throw new RuntimeException(e);
         }
-
      return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
