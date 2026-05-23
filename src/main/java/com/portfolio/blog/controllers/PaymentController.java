@@ -17,22 +17,27 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(path = "/api/payment")
 public class PaymentController {
 
-    private final StripeCustomerServiceInterface paymentService;
+    private final StripeCustomerServiceInterface customerService;
     private final String webhookSecret; // Secret that is used to create webhook signature
-    private final StripeEventHandlerServiceInterface stripeService;
+    private final StripeEventHandlerServiceInterface stripeEventHandlerService;
 
     public PaymentController(
-            StripeCustomerServiceInterface paymentService,
+            StripeCustomerServiceInterface customerService,
             @Value("${stripe.webhook.secret}") String webhookSecret, StripeEventHandlerServiceInterface stripeService)
     {
-        this.paymentService = paymentService;
+        this.customerService = customerService;
         this.webhookSecret = webhookSecret;
-        this.stripeService = stripeService;
+        this.stripeEventHandlerService = stripeService;
     }
 
     @PostMapping(path = "/checkout")
     public ResponseEntity<String> createCheckout() {
-        return ResponseEntity.ok().body(paymentService.checkout());
+        return ResponseEntity.ok().body(customerService.createCheckoutSession());
+    }
+
+    @PostMapping(path = "/manage")
+    public ResponseEntity<String> createBillingPortal() {
+        return ResponseEntity.ok().body(customerService.createBillingPortalSession());
     }
 
     @PostMapping(path = "/webhook")
@@ -42,7 +47,7 @@ public class PaymentController {
     ) {
         try {
             Event event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
-            stripeService.handle(event);
+            stripeEventHandlerService.handle(event);
 
         } catch (SignatureVerificationException e) {
             throw new RuntimeException(e);

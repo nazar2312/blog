@@ -1,11 +1,9 @@
 package com.portfolio.blog.domain.entities;
 
-import com.portfolio.blog.domain.entities.enums.SubscriptionCollectionMethod;
-import com.portfolio.blog.domain.entities.enums.SubscriptionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -23,36 +21,21 @@ public class SubscriptionEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private UserEntity userId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
-    private ProductEntity productId;
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private UserEntity user;
 
     @Column(name = "stripe_subscription_id", nullable = false)
     private String stripeSubscriptionId;
 
     @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private SubscriptionStatus status;
+    private Instant created;
+
+    @Column(nullable = false)
+    private String status;
 
     @Column
-    @Enumerated(EnumType.STRING)
-    private SubscriptionCollectionMethod collectionMethod;
+    private Instant currentPeriodStart;
 
     @Column
-    private LocalDateTime currentPeriodStart;
-
-    @Column
-    private LocalDateTime currentPeriodEnd;
-
-    @Column
-    private LocalDateTime cancelAt;
-
-    @Column
-    private LocalDateTime canceledAt;
-
-    @Column
-    private LocalDateTime endedAt;
+    private Instant currentPeriodEnd;
 }

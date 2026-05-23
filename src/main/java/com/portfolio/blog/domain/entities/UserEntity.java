@@ -26,7 +26,7 @@ public class UserEntity {
     @Column(name= "customer_id", unique = true)
     private String customerId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String username;
 
     @Email

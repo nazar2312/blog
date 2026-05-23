@@ -1,6 +1,8 @@
 package com.portfolio.blog.services.impl;
 
 import com.portfolio.blog.domain.entities.UserEntity;
+import com.portfolio.blog.exceptions.ResourceNotFoundException;
+import com.portfolio.blog.exceptions.StripeApiException;
 import com.portfolio.blog.exceptions.UnauthenticatedException;
 import com.portfolio.blog.repositories.UserRepository;
 import com.portfolio.blog.services.StripeCustomerServiceInterface;
@@ -33,23 +35,7 @@ public class StripeCustomerService implements StripeCustomerServiceInterface {
     }
 
     @Override
-    public String checkout() {
-
-        UserEntity user = userService.getUserFromSecurityContextHolder();
-
-        if (user != null) {
-
-            if (user.getCustomerId() == null) {
-                Customer customer = createCustomer(user);
-                return createCheckoutSession(customer);
-            }
-            return createBillingPortalSession(user.getCustomerId());
-
-        } else throw new UnauthenticatedException("Login to subscribe");
-    }
-
-    @Override
-    public Customer createCustomer(UserEntity user) {
+    public void createCustomer(UserEntity user) {
 
         CustomerCreateParams params = CustomerCreateParams.builder()
                 .setName(user.getUsername())
@@ -59,46 +45,62 @@ public class StripeCustomerService implements StripeCustomerServiceInterface {
             Customer customer = stripeClient.v1().customers().create(params);
             user.setCustomerId(customer.getId());
             userRepository.save(user);
-            return customer;
 
         } catch (StripeException e) {
-            throw new RuntimeException(e);
+            log.error("Failed to create new stripe customer, error message: {}", e.getMessage());
+            throw new StripeApiException("Unavailable to process payments, please try again later");
         }
     }
 
     @Override
-    public String createCheckoutSession(Customer customer) {
+    public String createCheckoutSession() {
 
+        UserEntity user = userService.getUserFromSecurityContextHolder();
+
+        if (user == null) throw new UnauthenticatedException("Please login to subscribe");
+
+        if (user.getCustomerId() == null) {
+            createCustomer(user); //creates stripe customer and assigning customerId
+        }
         SessionCreateParams sessionCreateParams = SessionCreateParams.builder()
-                        .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
-                        .setCustomer(customer.getId())
-                        .setSuccessUrl("http://localhost:8080/api/posts")
-                        .addLineItem(
-                                SessionCreateParams.LineItem.builder()
-                                        .setQuantity(1L)
-                                        .setPrice("price_1TU4gqLWsxwGCC0CcdhfZsv1")
-                                        .build())
-                        .build();
+                .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
+                .setCustomer(user.getCustomerId())
+                .setSuccessUrl("http://localhost:8080/api/posts")
+                .addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setQuantity(1L)
+                                .setPrice("price_1TU4gqLWsxwGCC0CcdhfZsv1")
+                                .build())
+                .build();
         try {
             Session session = stripeClient.v1().checkout().sessions().create(sessionCreateParams);
             return session.getUrl();
 
         } catch (StripeException e) {
-            throw new RuntimeException(e);
+            log.error("Failed to create stripe checkout session , error message: {}", e.getMessage());
+            throw new StripeApiException("Unavailable to process payments, please try again later");
         }
     }
 
     @Override
-    public String createBillingPortalSession(String customerId) {
+    public String createBillingPortalSession() {
+
+        UserEntity user = userService.getUserFromSecurityContextHolder();
+
+        if (user == null) throw new UnauthenticatedException("Please login to subscribe");
+        if (user.getCustomerId() == null || user.getCustomerId().isBlank())
+            throw new ResourceNotFoundException("Not a customer; No subscription to manage");
+
         com.stripe.param.billingportal.SessionCreateParams params = com.stripe.param.billingportal.SessionCreateParams.builder()
-                .setCustomer(customerId)
+                .setCustomer(user.getCustomerId())
                 .build();
         try {
             com.stripe.model.billingportal.Session session = stripeClient.v1().billingPortal().sessions().create(params);
             return session.getUrl();
 
         } catch (StripeException e) {
-            throw new RuntimeException(e);
+            log.error("Failed to create stripe billing portal session, error message: {}", e.getMessage());
+            throw new StripeApiException("Unavailable to process payments, please try again later");
         }
     }
 }

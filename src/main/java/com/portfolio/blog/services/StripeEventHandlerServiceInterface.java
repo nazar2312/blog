@@ -1,19 +1,19 @@
 package com.portfolio.blog.services;
 
 import com.stripe.model.Event;
+import com.stripe.model.StripeObject;
 
 public interface StripeEventHandlerServiceInterface {
 
     void handle(Event event);
 
-    void handleCustomerSubscriptionCreated(Event event);
+    void handleCustomerSubscriptionCreated(StripeObject stripeObject);
 
-    void handleCustomerSubscriptionUpdated(Event event);
+    void handleCustomerSubscriptionUpdated(StripeObject stripeObject);
 
-    void handleCustomerSubscriptionDeleted(Event event);
+    void handleCustomerSubscriptionDeleted(StripeObject stripeObject);
 
-    void handleInvoicePaid(Event event);
+    void handleInvoicePaid(StripeObject stripeObject);
 
-    void handleInvoicePaymentFailed(Event event);
-
+    void handleInvoicePaymentFailed(StripeObject stripeObject);
 }

@@ -1,15 +1,13 @@
 package com.portfolio.blog.services;
 
 import com.portfolio.blog.domain.entities.UserEntity;
-import com.stripe.model.Customer;
 
 public interface StripeCustomerServiceInterface {
 
-    String checkout();
+    void createCustomer(UserEntity user);
 
-    String createCheckoutSession(Customer customer);
+    String createCheckoutSession();
 
-    Customer createCustomer(UserEntity user);
+    String createBillingPortalSession();
 
-    String createBillingPortalSession(String customerId);
 }

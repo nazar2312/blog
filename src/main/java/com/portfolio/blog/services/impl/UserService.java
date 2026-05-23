@@ -1,6 +1,8 @@
 package com.portfolio.blog.services.impl;
 
 import com.portfolio.blog.domain.entities.UserEntity;
+import com.portfolio.blog.exceptions.ResourceNotFoundException;
+import com.portfolio.blog.repositories.UserRepository;
 import com.portfolio.blog.security.BlogUserDetails;
 import com.portfolio.blog.services.UserServiceInterface;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserService implements UserServiceInterface {
 
+    private final UserRepository repository;
+
     @Override
     public UserEntity getUserFromSecurityContextHolder() {
 
@@ -24,5 +28,11 @@ public class UserService implements UserServiceInterface {
                 ((BlogUserDetails) auth.getPrincipal())
                         .getUser(); //Returns userEntity
 
+    }
+
+    @Override
+    public UserEntity getUserByCustomerId(String customerId) {
+        return repository.findByCustomerId(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer is not found"));
     }
 }

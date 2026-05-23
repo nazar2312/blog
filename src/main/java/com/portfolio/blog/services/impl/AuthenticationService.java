@@ -9,6 +9,7 @@ import com.portfolio.blog.exceptions.UnauthenticatedException;
 import com.portfolio.blog.services.AuthenticationServiceInterface;
 import com.portfolio.blog.services.CookieServiceInterface;
 import com.portfolio.blog.services.JwtServiceInterface;
+import com.portfolio.blog.services.UserServiceInterface;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
@@ -34,7 +35,7 @@ public class AuthenticationService implements AuthenticationServiceInterface {
     private final UserDetailsService userDetailsService;
     private final JwtServiceInterface jwtService;
     private final CookieServiceInterface cookieService;
-    private final UserService userService;
+    private final UserServiceInterface userService;
 
     @Override
     public UserDetails authenticate(String email, String password) {

@@ -32,7 +32,7 @@ public class AuthenticationController {
 
     @PostMapping(path = "/refresh")
     public ResponseEntity<RefreshResponse> refresh(
-            @CookieValue(name = "refreshToken")
+            @CookieValue(name = "refreshToken", required = false)
             String refreshToken,
             HttpServletRequest request,
             HttpServletResponse response
@@ -44,7 +44,7 @@ public class AuthenticationController {
 
     @PostMapping(path = "/logout")
     public ResponseEntity<LogoutResponse> logout(
-            @CookieValue(name = "refreshToken")
+            @CookieValue(name = "refreshToken", required = false)
             String refreshToken,
             HttpServletRequest request,
             HttpServletResponse response

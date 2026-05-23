@@ -2,6 +2,7 @@ package com.portfolio.blog.controllers;
 
 import com.portfolio.blog.domain.dto.error.ApiErrorResponse;
 import com.portfolio.blog.exceptions.BlogApiException;
+import com.portfolio.blog.exceptions.StripeApiException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -73,12 +74,24 @@ public class ErrorController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(StripeApiException.class)
+    public ResponseEntity<ApiErrorResponse> handleStripeApiException(
+            StripeApiException ex,
+            HttpServletRequest request) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                ex.getStatus(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
     // Unexpected
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
 
-        log.error("Unexpected exception occurred at: {} : {}", request.getRequestURI(), ex.getMessage(), ex.getStackTrace());
-        ex.printStackTrace();
+        log.error("Unexpected exception occurred at: {} : {}", request.getRequestURI(), ex.getMessage());
 
         ApiErrorResponse response = new ApiErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
